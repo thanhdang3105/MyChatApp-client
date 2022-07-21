@@ -9,7 +9,6 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { fireStore } from '../../firebase/config';
 import { AuthContext } from '../../provider/AuthProvider';
 import { roomsSlice } from '../../redux/reducer/roomsSlice';
-import { updateDocument } from '../../firebase/service';
 
 const SiderBar = React.forwardRef((prop, ref) => {
     const { currentUser } = React.useContext(AuthContext);

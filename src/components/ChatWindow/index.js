@@ -27,7 +27,6 @@ function ChatWindow() {
     }, [currentRoom]);
 
     React.useEffect(() => {
-        console.log('render');
         socket.current.on('recive_msg', (data) => {
             setMsgRevice(data);
         });
@@ -57,10 +56,11 @@ function ChatWindow() {
                     }
                     // dispatch(roomsSlice.actions.setStatus({ id: foreignId, status: true }));
                 }
+                return room;
             });
             setMsgRevice(null);
         }
-    }, [msgRevice]);
+    }, [msgRevice, setAlert, dispatch]);
 
     const sendNotifi = (roomId) => {
         rooms.map((room) => {
