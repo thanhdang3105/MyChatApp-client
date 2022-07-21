@@ -1,0 +1,96 @@
+.wrapper_userInfo{
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    padding-right: 10px;
+    .hiddenMobile_btn{
+        display: none;
+        color: var(--text-color);
+    }
+    .wrapper_userInfo-user{
+        flex: 1;
+        color: var(--text-color);
+        position: relative;
+    }
+
+}
+
+.collapseList_heading{
+    color: var(--text-color) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-top: 1px solid var(--border-color) !important;
+    // border-right: unset !important;
+    // border-left: unset !important;
+    & + .collapseList_heading{
+        border-top: unset !important;
+    }
+}
+.collapseList_list{
+    max-height: 80vh;
+    text-align: center;
+    overflow-y: auto;
+    &::-webkit-scrollbar{
+        width: 5px;
+        height: 100%;
+    }
+    &::-webkit-scrollbar-thumb{
+        background-color: var(--text-desc);
+    }
+    .collapseList_list--notifi{
+        width: 85%;
+        border-bottom: 1px solid var(--border-color) ;
+        color: var(--text-color);
+        .collapseList_list-item{
+            padding: 10px;
+            .collapseList_list-item--name{
+                display: -webkit-box;
+                -webkit-box-orient: vertical;
+                -webkit-line-clamp: 2;
+                overflow: hidden;
+            }
+            &.isNewMess{
+                background-color: var(--background-content);
+            }
+        }
+    }
+}
+
+
+.collapseList_input-wrapper{
+    .collapseList_input{
+        width: 85%;
+        margin-left: 20px;
+        color: var(--text-color) !important;
+        &::before{
+            border-bottom: 1px solid var(--border-color);
+        }
+    }
+}
+
+
+.collapseList_popper{
+    width: 290px;
+    border: 1px solid var(--border-color);
+    z-index: 56;
+
+    .collapseList_popper-box{
+        background-color: var(--background-color);
+        color: var(--text-color);
+        padding: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .wrapper_userInfo{
+        min-height: 64px;
+        display: flex;
+        align-items: center;
+        padding-right: unset;
+        .hiddenMobile_btn{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+    
+}

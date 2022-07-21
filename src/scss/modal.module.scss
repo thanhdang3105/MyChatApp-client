@@ -1,0 +1,31 @@
+.modal_wrapper{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: fit-content;
+    max-width: 50vw;
+    height: fit-content;
+    padding: 15px;
+    background-color: white;
+}
+
+.img_active{
+    border: 1px solid black;
+}
+
+@media (max-width: 1024px) {
+    .modal_wrapper{
+        max-width: 70vw;
+    }
+}
+@media (max-width: 768px) {
+    .modal_wrapper{
+        max-width: 85vw;
+    }
+}
+@media (max-width: 480px) {
+    .modal_wrapper{
+        max-width: 100vw;
+    }
+}

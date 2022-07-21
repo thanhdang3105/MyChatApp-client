@@ -1,0 +1,86 @@
+.accountCentral_wrapper{
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    align-items: center;
+    padding: 10px 0 0;
+    gap: 10px;
+    background-color: var(--background-content);
+    .accountCentral_wrapper-heading{
+        color: var(--text-color);
+    }
+    .accountCentral_wrapper-avatar{
+        width: 200px;
+        height: 200px;
+        position: relative;
+        image-rendering: auto;
+        &:hover::before{
+            content: '📷';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--background-content);
+        }
+    }
+    .btn_arrow-back{
+        position: absolute;
+        width: 64px;
+        height: 64px;
+        border-radius: 99px;
+        color: var(--text-color);
+        top: 0;
+        left: 0;
+        padding: 0;
+    }
+    .accountCentral_wrapper-form{
+        display: flex;
+        width: 20vw;
+        flex-direction: column;
+        gap: 20px;
+        padding: 10px;
+        background-color: white;
+    }
+}
+
+.accountCentral_wrapper-name{
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    h2 ~ svg{
+        cursor: pointer;
+    }
+}
+
+
+@media (max-width: 1200px) {
+    .accountCentral_wrapper{
+        .accountCentral_wrapper-form{
+            width: 40vw;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .accountCentral_wrapper{
+        .accountCentral_wrapper-form{
+            width: 60vw;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .accountCentral_wrapper{
+        .accountCentral_wrapper-heading{
+            font-size: 25px;
+        }
+        .accountCentral_wrapper-form{
+            width: 80vw;
+        }
+    }
+}

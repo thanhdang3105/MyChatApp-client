@@ -1,25 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Routers, Routes, Route } from 'react-router-dom';
+import AuthProvider from './provider/AuthProvider';
+import Authentication from './pages/Authentication';
+import HomePage from './pages';
+import NotFound from './pages/NotFound';
+import { CssBaseline } from '@mui/material';
+import AppProvider from './provider/AppProvider';
+import AccountCentral from './pages/AccountCentral';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Routers>
+            <CssBaseline />
+            <AuthProvider>
+                <AppProvider>
+                    <Routes>
+                        <Route path="/authentication" element={<Authentication />} />
+                        <Route path="/account" element={<AccountCentral />} />
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/*" element={<NotFound />} />
+                    </Routes>
+                </AppProvider>
+            </AuthProvider>
+        </Routers>
+    );
 }
 
 export default App;
