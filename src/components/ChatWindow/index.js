@@ -27,6 +27,7 @@ function ChatWindow() {
     }, [currentRoom]);
 
     React.useEffect(() => {
+        console.log('render');
         socket.current.on('recive_msg', (data) => {
             setMsgRevice(data);
         });

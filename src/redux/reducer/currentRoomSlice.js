@@ -24,5 +24,18 @@ export const currentRoomSlice = createSlice({
             }
             return state;
         },
+        changeInfo: (state, { payload }) => {
+            const { id, data } = payload;
+            const newMSG = state.messages.map((message) => {
+                if (message.userId === id) {
+                    return { ...message, name: data.name, photoURL: data.photoURL };
+                }
+                return message;
+            });
+            if (state.userId === id) {
+                return { ...state, name: data.name, photoURL: data.photoURL, messages: newMSG };
+            }
+            return { ...state, messages: newMSG };
+        },
     },
 });

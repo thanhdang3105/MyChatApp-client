@@ -71,23 +71,28 @@ export const roomsSlice = createSlice({
             return state;
         },
         memberChangeInfo: (state, { payload }) => {
-            return state.map((room) => {
-                room.members.map((member) => {
-                    if (member._id === payload.id) {
-                        member.name = payload.data.name;
-                        member.photoURL = payload.data.photoURL;
-                    }
-                    return member;
-                });
-                room.messages.map((message) => {
-                    if (message.userId === payload.id) {
-                        message.name = payload.data.name;
-                        message.photoURL = payload.data.photoURL;
+            const { id, data } = payload;
+            const newRooms = state.map((room) => {
+                const newMSG = room.messages.map((message) => {
+                    if (message.userId === id) {
+                        return { ...message, name: data.name, photoURL: data.photoURL };
                     }
                     return message;
                 });
-                return room;
+                if (room.members) {
+                    const newMembers = room.members.map((member) => {
+                        if (member._id === id) {
+                            return { ...member, name: data.name, photoURL: data.photoURL };
+                        }
+                        return member;
+                    });
+                    return { ...room, members: newMembers, messages: newMSG };
+                } else if (room.userId === id) {
+                    return { ...room, name: data.name, photoURL: data.photoURL, messages: newMSG };
+                }
+                return { ...room, messages: newMSG };
             });
+            return newRooms;
         },
     },
 });

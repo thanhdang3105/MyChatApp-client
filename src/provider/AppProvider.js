@@ -58,25 +58,8 @@ export default function AppProvider({ children }) {
     React.useEffect(() => {
         socket.current.on('userChangeInfo', (data) => {
             dispatch(usersSlice.actions.updateUser({ id: data._id, data }));
-            const newMess = currentRoom.messages.map((message) => {
-                if (message.userId === data._id) {
-                    message.name = data.name;
-                    message.photoURL = data.photoURL;
-                }
-                return message;
-            });
-            if (currentRoom.userId === data._id) {
-                dispatch(
-                    currentRoomSlice.actions.updateState({
-                        name: data.name,
-                        photoURL: data.photoURL,
-                        messages: newMess,
-                    }),
-                );
-            } else {
-                dispatch(currentRoomSlice.actions.updateState({ messages: newMess }));
-            }
             dispatch(roomsSlice.actions.memberChangeInfo({ id: data._id, data }));
+            dispatch(currentRoomSlice.actions.changeInfo({ id: data._id, data }));
         });
     }, [socket, dispatch]);
 
