@@ -21,6 +21,8 @@ import { AuthContext } from '../provider/AuthProvider';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { storage } from '../firebase/config';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { roomsSlice } from '../redux/reducer/roomsSlice';
 
 function AccountCentral() {
     const { currentUser, setCurrentUser, socket } = React.useContext(AuthContext);
@@ -34,6 +36,7 @@ function AccountCentral() {
     const [validate, setvalidate] = React.useState({ error: false, helperText: '' });
     const [alert, setAlert] = React.useState({ open: false, text: '' });
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const id = React.useId();
 
     const handleChangeAvatar = (e) => {
@@ -73,6 +76,7 @@ function AccountCentral() {
                         setCurrentUser((prev) => {
                             const newUser = { ...prev, photoURL: url };
                             socket.current.emit('userChangeInfo', newUser);
+                            dispatch(roomsSlice.actions.memberChangeInfo({ id: newUser._id, data: newUser }));
                             return newUser;
                         });
                         setAlert({ open: true, text: 'Đổi ảnh thành công' });
@@ -109,6 +113,8 @@ function AccountCentral() {
                             setCurrentUser((prev) => {
                                 const newUser = { ...prev, name };
                                 socket.current.emit('userChangeInfo', newUser);
+                                dispatch(roomsSlice.actions.memberChangeInfo({ id: newUser._id, data: newUser }));
+
                                 return newUser;
                             });
                             setAlert({ open: true, text: 'Đã đổi tên thành công' });
