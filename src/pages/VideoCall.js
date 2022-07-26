@@ -1,14 +1,6 @@
 import React from 'react';
 import styles from '../scss/videoCall.module.scss';
-import {
-    CancelPresentationSharp,
-    CastSharp,
-    DesktopAccessDisabled,
-    DesktopMac,
-    Mic,
-    MicOff,
-    PhoneDisabled,
-} from '@mui/icons-material';
+import { DesktopAccessDisabled, DesktopMac, Mic, MicOff, PhoneDisabled } from '@mui/icons-material';
 import { Avatar, Backdrop, Box, CircularProgress, IconButton, Typography } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { currentRoomSelector } from '../redux/selector';
@@ -41,7 +33,7 @@ export default function VideoCall() {
         if (status === 'disconnected' || !currentRoom._id) {
             navigate('/', { replace: true });
         }
-    }, [status, currentRoom]);
+    }, [status, currentRoom, navigate]);
 
     React.useEffect(() => {
         const localStream = document.getElementById('localStream').parentElement;
@@ -109,7 +101,7 @@ export default function VideoCall() {
                 setStatus('disconnected');
             }
         });
-    }, [localStream, stateControls]);
+    }, [localStream, stateControls, currentUser, currentRoom]);
 
     React.useEffect(() => {
         if (stateControls.type === 'answer' && localStream) {
@@ -152,7 +144,7 @@ export default function VideoCall() {
                 console.log(e);
             }
         }
-    }, [stateControls, localStream]);
+    }, [stateControls, localStream, navigate, socket]);
 
     React.useEffect(() => {
         if (stateControls.type === 'offer' && localStream && status === 'connecting') {
@@ -193,7 +185,7 @@ export default function VideoCall() {
                 console.log(e);
             }
         }
-    }, [status, localStream, stateControls]);
+    }, [status, localStream, stateControls, navigate, socket]);
 
     React.useEffect(() => {
         if (status === 'connected' && remoteStream) {

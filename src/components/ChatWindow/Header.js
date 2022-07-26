@@ -5,7 +5,6 @@ import {
     Avatar,
     AvatarGroup,
     Box,
-    Button,
     IconButton,
     Toolbar,
     Typography,
@@ -13,7 +12,6 @@ import {
     MenuItem,
     Snackbar,
     Tooltip,
-    ListItemButton,
 } from '@mui/material';
 import { MoreVert, List as IconList, Phone, Videocam } from '@mui/icons-material';
 import { AuthContext } from '../../provider/AuthProvider';
