@@ -226,7 +226,7 @@ export default function VideoCall() {
         localStream.srcObject.getTracks().forEach((track) => track.stop());
         localStream.removeAttribute('src');
         if (localPeer) {
-            localPeer.destroy('leavecall');
+            localPeer.destroy('');
             setLocalPeer(null);
             remoteStream?.srcObject?.getTracks().forEach((track) => track.stop());
             remoteStream?.removeAttribute('src');
