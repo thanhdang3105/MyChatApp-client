@@ -5,7 +5,7 @@ import Login from '../components/Authen/Login';
 import Register from '../components/Authen/Register';
 import styles from '../scss/authen.module.scss';
 
-function AuthContext() {
+function Authentication() {
     const [authMethod, setAuthMethod] = React.useState('');
 
     return (
@@ -23,4 +23,4 @@ function AuthContext() {
     );
 }
 
-export default AuthContext;
+export default Authentication;

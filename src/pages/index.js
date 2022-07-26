@@ -10,6 +10,7 @@ import {
     Typography,
     ListItemButton,
     Box,
+    IconButton,
 } from '@mui/material';
 import SiderBar from '../components/home/SiderBar';
 import Home from '../components/home';
@@ -17,13 +18,25 @@ import { AuthContext } from '../provider/AuthProvider';
 import { AppContext } from '../provider/AppProvider';
 import { useSelector } from 'react-redux';
 import { roomsSelector } from '../redux/selector';
+import { PhoneDisabled, PhoneInTalk } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 function HomePage() {
-    const { currentUser } = React.useContext(AuthContext);
+    const { socket, currentUser } = React.useContext(AuthContext);
     const rooms = useSelector(roomsSelector);
-    const { notice, setNotice, isVisibleMobileSider, setIsVisibleMobileSider, alert, setAlert, chooseRoom } =
-        React.useContext(AppContext);
+    const {
+        notice,
+        setNotice,
+        isVisibleMobileSider,
+        setIsVisibleMobileSider,
+        alert,
+        setAlert,
+        chooseRoom,
+        calling,
+        setCalling,
+    } = React.useContext(AppContext);
     const siderbarRef = React.useRef();
+    const navigate = useNavigate();
 
     const handleCloseNotice = () => {
         setNotice({ open: false, text: '' });
@@ -36,6 +49,15 @@ function HomePage() {
             handleCloseNotice();
             chooseRoom(checkRoom);
         }
+    };
+
+    const handleAnswerCall = (answer) => {
+        if (answer === 'accept') {
+            navigate('/videoCall', { state: { audio: true, video: true, type: 'answer', id: calling.id } });
+        } else {
+            socket.current.emit('answer_call', { id: calling.id, mess: 'cancel' });
+        }
+        setCalling({ isCalling: false, name: null, id: null });
     };
 
     return currentUser ? (
@@ -81,6 +103,25 @@ function HomePage() {
                     )
                 }
                 onClose={handleCloseNotice}
+            />
+            <Snackbar
+                open={calling.isCalling}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                autoHideDuration={10000}
+                className={styles['alert_homePage']}
+                message={
+                    <ListItemButton sx={{ width: '100%', flex: 1 }}>
+                        <Typography component="h5" variant="h6">
+                            {calling?.name} đang gọi bạn
+                        </Typography>
+                        <IconButton onClick={() => handleAnswerCall('accept')}>
+                            <PhoneInTalk />
+                        </IconButton>
+                        <IconButton onClick={() => handleAnswerCall('cancel')}>
+                            <PhoneDisabled />
+                        </IconButton>
+                    </ListItemButton>
+                }
             />
             <Snackbar
                 open={notice.open}

@@ -13,8 +13,9 @@ import {
     MenuItem,
     Snackbar,
     Tooltip,
+    ListItemButton,
 } from '@mui/material';
-import { Add, MoreVert, List as IconList } from '@mui/icons-material';
+import { MoreVert, List as IconList, Phone, Videocam } from '@mui/icons-material';
 import { AuthContext } from '../../provider/AuthProvider';
 import axios from 'axios';
 import { AppContext } from '../../provider/AppProvider';
@@ -25,6 +26,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { currentRoomSelector, roomsSelector } from '../../redux/selector';
 import { roomsSlice } from '../../redux/reducer/roomsSlice';
 import { currentRoomSlice } from '../../redux/reducer/currentRoomSlice';
+import { useNavigate } from 'react-router-dom';
 
 function Header() {
     const currentRoom = useSelector(currentRoomSelector);
@@ -43,6 +45,7 @@ function Header() {
     const [err, setErr] = React.useState({ err: false, text: '' });
     const id = React.useId();
 
+    const navigate = useNavigate();
     const dispatch = useDispatch();
 
     const toggleMenuSetting = (e) => {
@@ -105,26 +108,34 @@ function Header() {
                 </Box>
                 <Box className={styles['homPage_header-box']}>
                     <SwitchTheme onClick={handleChangeTheme} checked={themeDark} />
-                    {currentRoom.members && (
+                    {currentRoom.members ? (
+                        <AvatarGroup max={3} className={styles['homPage_header-avatar']}>
+                            {currentRoom.members.map((item) => (
+                                <Tooltip key={item._id} title={item.name}>
+                                    <Avatar sx={{ width: 24, height: 24 }} src={item?.photoURL}>
+                                        {item?.photoURL || item?.name?.charAt(0)?.toUpperCase()}
+                                    </Avatar>
+                                </Tooltip>
+                            ))}
+                        </AvatarGroup>
+                    ) : (
                         <>
-                            <AvatarGroup max={3} className={styles['homPage_header-avatar']}>
-                                {currentRoom.members.map((item) => (
-                                    <Tooltip key={item._id} title={item.name}>
-                                        <Avatar sx={{ width: 24, height: 24 }} src={item?.photoURL}>
-                                            {item?.photoURL || item?.name?.charAt(0)?.toUpperCase()}
-                                        </Avatar>
-                                    </Tooltip>
-                                ))}
-                            </AvatarGroup>
-                            <Button
-                                size="small"
-                                variant="outlined"
-                                startIcon={<Add />}
-                                onClick={() => setIsInvite(true)}
+                            <IconButton
+                                color="inherit"
+                                onClick={() =>
+                                    navigate('/videoCall', { state: { audio: true, video: false, type: 'offer' } })
+                                }
                             >
-                                Mời
-                            </Button>
-                            <InviteUser visibleModal={{ isInvite, setIsInvite }} />
+                                <Phone />
+                            </IconButton>
+                            <IconButton
+                                color="inherit"
+                                onClick={() =>
+                                    navigate('/videoCall', { state: { audio: true, video: true, type: 'offer' } })
+                                }
+                            >
+                                <Videocam />
+                            </IconButton>
                         </>
                     )}
                     {!currentRoom.provider && (
@@ -159,6 +170,17 @@ function Header() {
                                 >
                                     Thông tin
                                 </MenuItem>
+                                {currentRoom.members && (
+                                    <MenuItem
+                                        onClick={() => {
+                                            setOpenMenu(false);
+                                            setIsInvite(true);
+                                        }}
+                                    >
+                                        Thêm thành viên
+                                        <InviteUser visibleModal={{ isInvite, setIsInvite }} />
+                                    </MenuItem>
+                                )}
                                 <MenuItem onClick={handleOutRoom}>
                                     {currentRoom.members ? 'Thoát phòng' : 'Xoá'}
                                 </MenuItem>

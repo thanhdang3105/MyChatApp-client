@@ -6,6 +6,7 @@ import NotFound from './pages/NotFound';
 import { CssBaseline } from '@mui/material';
 import AppProvider from './provider/AppProvider';
 import AccountCentral from './pages/AccountCentral';
+import VideoCall from './pages/VideoCall';
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                     <Routes>
                         <Route path="/authentication" element={<Authentication />} />
                         <Route path="/account" element={<AccountCentral />} />
+                        <Route path="/videoCall" element={<VideoCall />} />
                         <Route path="/" element={<HomePage />} />
                         <Route path="/*" element={<NotFound />} />
                     </Routes>

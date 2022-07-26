@@ -16,6 +16,7 @@ export default function AppProvider({ children }) {
     const [isVisibleMobileSider, setIsVisibleMobileSider] = React.useState(false);
     const [notice, setNotice] = React.useState({ open: false, text: '' });
     const [alert, setAlert] = React.useState({ open: false, data: null });
+    const [calling, setCalling] = React.useState({ isCalling: false, name: null, id: null });
     const dispatch = useDispatch();
 
     React.useEffect(() => {
@@ -61,6 +62,9 @@ export default function AppProvider({ children }) {
             dispatch(roomsSlice.actions.memberChangeInfo({ id: data._id, data }));
             dispatch(currentRoomSlice.actions.changeInfo({ id: data._id, data }));
         });
+        socket.current.on('send_call', (data) => {
+            setCalling({ isCalling: true, name: data.name, id: data.from });
+        });
     }, [socket, dispatch]);
 
     React.useEffect(() => {
@@ -91,6 +95,8 @@ export default function AppProvider({ children }) {
                 alert,
                 setAlert,
                 chooseRoom,
+                calling,
+                setCalling,
             }}
         >
             {children}

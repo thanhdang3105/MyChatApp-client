@@ -8,7 +8,7 @@ body{
   --background-blur:rgba(255, 255, 255, 0.4);
   --background-content:rgba(255, 255, 255, 0.8);
   --background-color: white;
-  --border-color: rgba(200, 200, 200, 0.5);
+  --border-color: rgba(0, 0, 0, 0.5);
   --text-color: black;
   --text-desc: rgb(22, 22, 22);
   --button-link: orange;
@@ -18,7 +18,7 @@ body.dark{
   --background-blur:rgba(70, 70, 70, 0.5);
   --background-content:rgba(56, 56, 56, 0.8);
   --background-color: rgb(31, 31, 31);
-  --border-color: white;
+  --border-color: rgba(255, 255, 255, 0.5);
   --text-color: white;
   --text-desc: rgb(200, 200, 200);
   --button-link: blue;
