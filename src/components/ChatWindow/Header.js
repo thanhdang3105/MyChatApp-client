@@ -117,14 +117,16 @@ function Header() {
                             ))}
                         </AvatarGroup>
                     ) : (
-                        <IconButton
-                            color="inherit"
-                            onClick={() =>
-                                navigate('/videoCall', { state: { audio: true, video: true, type: 'offer' } })
-                            }
-                        >
-                            <Videocam />
-                        </IconButton>
+                        !currentRoom.provider && (
+                            <IconButton
+                                color="inherit"
+                                onClick={() =>
+                                    navigate('/videoCall', { state: { audio: true, video: true, type: 'offer' } })
+                                }
+                            >
+                                <Videocam />
+                            </IconButton>
+                        )
                     )}
                     {!currentRoom.provider && (
                         <>
