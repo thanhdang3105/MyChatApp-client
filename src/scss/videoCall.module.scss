@@ -81,7 +81,7 @@
         box-shadow: 0 0 10px 3px var(--border-color);
         z-index: 1;
         video{
-            object-fit: fill;
+            object-fit: contain;
             height: 100%;
             width: 100%;
             object-position: center;
@@ -95,16 +95,10 @@
         overflow: hidden; 
         position: relative;
         video{
-            object-fit: fill;
+            object-fit: contain;
             height: 100%;
             width: 100%;
             object-position: center;
-        }
-        .noCamera{
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
         }
     }
 }
