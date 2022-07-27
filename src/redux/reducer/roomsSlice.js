@@ -9,7 +9,10 @@ export const roomsSlice = createSlice({
             return payload;
         },
         addRoom: (state, { payload }) => {
-            return [payload, ...state];
+            if (!state.find((room) => room._id === payload._id)) {
+                return [payload, ...state];
+            }
+            return state;
         },
         setStatus: (state, { payload }) => {
             const check = state.find((item) => item._id === payload.id);
