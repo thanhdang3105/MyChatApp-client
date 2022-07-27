@@ -65,6 +65,7 @@ function InviteUser({ visibleModal: { isInvite, setIsInvite } }) {
             onClose={() => setIsInvite(false)}
             aria-labelledby="transition-modal-title"
             closeAfterTransition
+            sx={{ width: '100%' }}
         >
             <Fade in={isInvite}>
                 <Box component="form" onSubmit={handleInviteUser} className={styles['modal_wrapper']}>
@@ -73,7 +74,7 @@ function InviteUser({ visibleModal: { isInvite, setIsInvite } }) {
                     </Typography>
                     <Autocomplete
                         multiple
-                        limitTags={2}
+                        limitTags={3}
                         autoHighlight
                         clearIcon={false}
                         id="multiple-limit-tags"
@@ -91,7 +92,7 @@ function InviteUser({ visibleModal: { isInvite, setIsInvite } }) {
                         }
                         onChange={handleSelectUser}
                         renderInput={(params) => <TextField {...params} label="Tìm kiếm" onChange={handleSearchUser} />}
-                        sx={{ width: '500px', m: '10px 0' }}
+                        sx={{ width: '100%', m: '10px 0' }}
                     />
                     <Button type="submit" variant="contained">
                         Xác nhận
