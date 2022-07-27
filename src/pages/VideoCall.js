@@ -113,6 +113,17 @@ export default function VideoCall() {
                 }
             });
 
+            peer.current.ontrack = (event) => {
+                const [remote] = event.streams;
+                setRemoteStream(remote);
+            };
+
+            peer.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
+                }
+            };
+
             socket.current.on('revice_signal', async (signal) => {
                 if (signal.type === 'answer' && !peer.current.currentRemoteDescription) {
                     const remoteDesc = new RTCSessionDescription(signal);
@@ -133,6 +144,16 @@ export default function VideoCall() {
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: offer });
                 }
             })();
+
+            peer.current.addEventListener('connectionstatechange', (event) => {
+                if (peer.current.connectionState === 'connected') {
+                    setStatus('connected');
+                } else if (event.currentTarget.iceConnectionState === 'disconnected') {
+                    setStatus('disconnected');
+                    localStream?.getTracks().forEach((track) => track.stop());
+                    peer.current.close();
+                }
+            });
         }
     }, [configPeer, localStream, socket, status, stateControls, currentRoom]);
 
@@ -150,6 +171,17 @@ export default function VideoCall() {
                 }
             });
 
+            peer.current.ontrack = (event) => {
+                const [remote] = event.streams;
+                setRemoteStream(remote);
+            };
+
+            peer.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
+                }
+            };
+
             socket.current.on('revice_signal', async (signal) => {
                 if (signal.type === 'offer' && !peer.current.currentRemoteDescription) {
                     peer.current.setRemoteDescription(new RTCSessionDescription(signal));
@@ -162,6 +194,15 @@ export default function VideoCall() {
                     } catch (e) {
                         console.error('Error adding received ice candidate', e);
                     }
+                }
+            });
+            peer.current.addEventListener('connectionstatechange', (event) => {
+                if (peer.current.connectionState === 'connected') {
+                    setStatus('connected');
+                } else if (event.currentTarget.iceConnectionState === 'disconnected') {
+                    setStatus('disconnected');
+                    localStream?.getTracks().forEach((track) => track.stop());
+                    peer.current.close();
                 }
             });
         }
@@ -181,30 +222,6 @@ export default function VideoCall() {
             peer.current.close();
         }
     }, [localStream, remoteStream]);
-
-    React.useEffect(() => {
-        if (peer.current) {
-            peer.current.ontrack = (event) => {
-                const [remote] = event.streams;
-                setRemoteStream(remote);
-            };
-
-            peer.current.onicecandidate = (event) => {
-                if (event.candidate) {
-                    socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
-                }
-            };
-            peer.current.addEventListener('connectionstatechange', (event) => {
-                if (peer.current.connectionState === 'connected') {
-                    setStatus('connected');
-                } else if (event.currentTarget.iceConnectionState === 'disconnected') {
-                    setStatus('disconnected');
-                    localStream?.getTracks().forEach((track) => track.stop());
-                    peer.current.close();
-                }
-            });
-        }
-    }, [socket, currentRoom.userId, localStream]);
 
     React.useEffect(() => {
         if (status === 'connected' && remoteStream) {
