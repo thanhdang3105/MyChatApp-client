@@ -125,6 +125,7 @@ export default function VideoCall() {
             };
 
             socket.current.on('revice_signal', async (signal) => {
+                console.log(signal);
                 if (signal.type === 'answer' && !peer.current.currentRemoteDescription) {
                     const remoteDesc = new RTCSessionDescription(signal);
                     await peer.current.setRemoteDescription(remoteDesc);
@@ -183,6 +184,7 @@ export default function VideoCall() {
             };
 
             socket.current.on('revice_signal', async (signal) => {
+                console.log(signal);
                 if (signal.type === 'offer' && !peer.current.currentRemoteDescription) {
                     peer.current.setRemoteDescription(new RTCSessionDescription(signal));
                     const answer = await peer.current.createAnswer();
@@ -197,6 +199,7 @@ export default function VideoCall() {
                 }
             });
             peer.current.addEventListener('connectionstatechange', (event) => {
+                console.log(event);
                 if (peer.current.connectionState === 'connected') {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
