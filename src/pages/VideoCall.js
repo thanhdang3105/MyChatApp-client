@@ -119,14 +119,12 @@ export default function VideoCall() {
             };
 
             peer.current.onicecandidate = (event) => {
-                console.log(event);
                 if (event.candidate) {
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
                 }
             };
 
             socket.current.on('revice_signal', async (signal) => {
-                console.log(signal);
                 if (signal.type === 'answer' && !peer.current.currentRemoteDescription) {
                     const remoteDesc = new RTCSessionDescription(signal);
                     await peer.current.setRemoteDescription(remoteDesc);
@@ -144,12 +142,10 @@ export default function VideoCall() {
                     const offer = await peer.current.createOffer();
                     await peer.current.setLocalDescription(offer);
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: offer });
-                    console.log(offer);
                 }
             })();
 
             peer.current.addEventListener('connectionstatechange', (event) => {
-                console.log(event);
                 if (peer.current.connectionState === 'connected') {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
@@ -181,20 +177,17 @@ export default function VideoCall() {
             };
 
             peer.current.onicecandidate = (event) => {
-                console.log(event);
                 if (event.candidate) {
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
                 }
             };
 
             socket.current.on('revice_signal', async (signal) => {
-                console.log(signal);
                 if (signal.type === 'offer' && !peer.current.currentRemoteDescription) {
                     peer.current.setRemoteDescription(new RTCSessionDescription(signal));
                     const answer = await peer.current.createAnswer();
                     await peer.current.setLocalDescription(answer);
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: answer });
-                    console.log(answer);
                 } else if (signal.candidate && peer.current.signalingState !== 'closed') {
                     try {
                         await peer.current.addIceCandidate(signal);
@@ -204,7 +197,6 @@ export default function VideoCall() {
                 }
             });
             peer.current.addEventListener('connectionstatechange', (event) => {
-                console.log(event);
                 if (peer.current.connectionState === 'connected') {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
