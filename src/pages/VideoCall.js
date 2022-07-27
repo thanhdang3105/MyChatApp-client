@@ -144,6 +144,7 @@ export default function VideoCall() {
                     const offer = await peer.current.createOffer();
                     await peer.current.setLocalDescription(offer);
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: offer });
+                    console.log(offer);
                 }
             })();
 
@@ -193,6 +194,7 @@ export default function VideoCall() {
                     const answer = await peer.current.createAnswer();
                     await peer.current.setLocalDescription(answer);
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: answer });
+                    console.log(answer);
                 } else if (signal.candidate && peer.current.signalingState !== 'closed') {
                     try {
                         await peer.current.addIceCandidate(signal);
