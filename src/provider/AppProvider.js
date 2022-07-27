@@ -54,7 +54,7 @@ export default function AppProvider({ children }) {
             dispatch(roomsSlice.actions.updateState({ id: data.id, data: data.data }));
             // socket.current.emit('join_room', data._id);
         });
-    }, [socket, dispatch, currentRoom, currentRoom]);
+    }, [socket, dispatch, currentRoom]);
 
     React.useEffect(() => {
         socket.current.on('userChangeInfo', (data) => {

@@ -53,7 +53,11 @@ function HomePage() {
 
     const handleAnswerCall = (answer) => {
         if (answer === 'accept') {
-            navigate('/videoCall', { state: { audio: true, video: true, type: 'answer', id: calling.id } });
+            const checkRoom = rooms.find((room) => room.userId === calling.id);
+            if (checkRoom) {
+                chooseRoom(checkRoom);
+                navigate('/videoCall', { state: { audio: true, video: true, type: 'answer', id: calling.id } });
+            }
         } else {
             socket.current.emit('answer_call', { id: calling.id, mess: 'cancel' });
         }

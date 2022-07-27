@@ -13,7 +13,7 @@ import {
     Snackbar,
     Tooltip,
 } from '@mui/material';
-import { MoreVert, List as IconList, Phone, Videocam } from '@mui/icons-material';
+import { MoreVert, List as IconList, Videocam } from '@mui/icons-material';
 import { AuthContext } from '../../provider/AuthProvider';
 import axios from 'axios';
 import { AppContext } from '../../provider/AppProvider';
@@ -117,24 +117,14 @@ function Header() {
                             ))}
                         </AvatarGroup>
                     ) : (
-                        <>
-                            <IconButton
-                                color="inherit"
-                                onClick={() =>
-                                    navigate('/videoCall', { state: { audio: true, video: false, type: 'offer' } })
-                                }
-                            >
-                                <Phone />
-                            </IconButton>
-                            <IconButton
-                                color="inherit"
-                                onClick={() =>
-                                    navigate('/videoCall', { state: { audio: true, video: true, type: 'offer' } })
-                                }
-                            >
-                                <Videocam />
-                            </IconButton>
-                        </>
+                        <IconButton
+                            color="inherit"
+                            onClick={() =>
+                                navigate('/videoCall', { state: { audio: true, video: true, type: 'offer' } })
+                            }
+                        >
+                            <Videocam />
+                        </IconButton>
                     )}
                     {!currentRoom.provider && (
                         <>

@@ -6,20 +6,12 @@ import { useSelector } from 'react-redux';
 import { currentRoomSelector } from '../redux/selector';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../provider/AuthProvider';
-import Peer from 'simple-peer';
-
-import * as process from 'process';
-
-window.global = window;
-window.process = process;
-window.Buffer = [];
 
 export default function VideoCall() {
     const currentRoom = useSelector(currentRoomSelector);
     const { socket, currentUser } = React.useContext(AuthContext);
     const { state: stateControls } = useLocation();
     const [status, setStatus] = React.useState('pending');
-    const [localPeer, setLocalPeer] = React.useState(null);
     const [localStream, setLocalStream] = React.useState(null);
     const [remoteStream, setRemoteStream] = React.useState(null);
     const [state, setState] = React.useState({
@@ -27,10 +19,16 @@ export default function VideoCall() {
         video: stateControls.video,
     });
 
+    const configPeer = React.useMemo(() => {
+        return { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    }, []);
+
+    const peer = React.useRef(new RTCPeerConnection(configPeer));
+
     const navigate = useNavigate();
 
     React.useEffect(() => {
-        if (status === 'disconnected' || !currentRoom._id) {
+        if (status === 'disconnected' || !currentRoom._id || status === 'cancel') {
             navigate('/', { replace: true });
         }
     }, [status, currentRoom, navigate]);
@@ -98,94 +96,115 @@ export default function VideoCall() {
             if (response === 'accept') {
                 setStatus('connecting');
             } else {
-                setStatus('disconnected');
+                setStatus('cancel');
             }
         });
-    }, [localStream, stateControls, currentUser, currentRoom]);
+    }, [localStream, stateControls, currentUser, currentRoom, socket]);
+
+    React.useEffect(() => {
+        if (stateControls.type === 'offer' && localStream && status !== 'pending') {
+            localStream.getTracks().forEach((track) => {
+                try {
+                    if (!peer.current.getSenders().find((sender) => sender.track.id === track.id)) {
+                        peer.current.addTrack(track, localStream);
+                    }
+                } catch (er) {
+                    console.log(er);
+                }
+            });
+
+            socket.current.on('revice_signal', async (signal) => {
+                if (signal.type === 'answer' && !peer.current.currentRemoteDescription) {
+                    const remoteDesc = new RTCSessionDescription(signal);
+                    await peer.current.setRemoteDescription(remoteDesc);
+                } else if (signal.candidate && peer.current.signalingState !== 'closed') {
+                    try {
+                        await peer.current.addIceCandidate(signal);
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+            });
+
+            (async function () {
+                if (peer.current.signalingState !== 'closed') {
+                    const offer = await peer.current.createOffer();
+                    await peer.current.setLocalDescription(offer);
+                    socket.current.emit('send_signal', { to: currentRoom.userId, signal: offer });
+                }
+            })();
+        }
+    }, [configPeer, localStream, socket, status, stateControls, currentRoom]);
 
     React.useEffect(() => {
         if (stateControls.type === 'answer' && localStream) {
-            socket.current.emit('answer_call', { id: stateControls.id, mess: 'accept' });
-            try {
-                let peer = new Peer({ stream: localStream });
-                setLocalPeer(peer);
-                peer.on('signal', (data) => {
-                    socket.current.emit('send_answer', { to: stateControls.id, answer: data });
-                });
+            socket.current.emit('answer_call', { id: currentRoom.userId, mess: 'accept' });
 
-                socket.current.on('revice_offer', (offer) => {
-                    if (!peer.destroyed) {
-                        if (peer.connected && offer.type !== 'answer') {
-                            peer.signal(offer);
-                        } else if (!peer.connected) {
-                            peer.signal(offer);
-                        }
+            localStream.getTracks().forEach((track) => {
+                try {
+                    if (!peer.current.getSenders().find((sender) => sender.track.id === track.id)) {
+                        peer.current.addTrack(track, localStream);
                     }
-                });
+                } catch (er) {
+                    console.log(er);
+                }
+            });
 
-                peer.on('stream', (stream) => {
-                    setRemoteStream(stream);
-                });
-
-                peer.on('close', () => {
-                    peer.destroy('leavecall');
-                    navigate('/', { replace: true });
-                });
-
-                peer.on('error', (err) => {
-                    console.log(err);
-                    peer = new Peer({ stream: localStream });
-                });
-
-                peer.on('connect', () => {
-                    setStatus('connected');
-                });
-            } catch (e) {
-                console.log(e);
-            }
+            socket.current.on('revice_signal', async (signal) => {
+                if (signal.type === 'offer' && !peer.current.currentRemoteDescription) {
+                    peer.current.setRemoteDescription(new RTCSessionDescription(signal));
+                    const answer = await peer.current.createAnswer();
+                    await peer.current.setLocalDescription(answer);
+                    socket.current.emit('send_signal', { to: currentRoom.userId, signal: answer });
+                } else if (signal.candidate && peer.current.signalingState !== 'closed') {
+                    try {
+                        await peer.current.addIceCandidate(signal);
+                    } catch (e) {
+                        console.error('Error adding received ice candidate', e);
+                    }
+                }
+            });
         }
-    }, [stateControls, localStream, navigate, socket]);
+    }, [configPeer, localStream, socket, stateControls, currentRoom]);
+
+    const handleLeaveCall = React.useCallback(() => {
+        setStatus('disconnected');
+        const localVideo = document.getElementById('localStream');
+        const remoteVideo = document.getElementById('remoteStream');
+        localStream.getTracks().forEach((track) => track.stop());
+        localVideo?.removeAttribute('srcObjec');
+        if (remoteVideo) {
+            remoteStream?.getTracks().forEach((track) => track.stop());
+            remoteVideo?.removeAttribute('srcObjec');
+        }
+        if (peer.current) {
+            peer.current.close();
+        }
+    }, [localStream, remoteStream]);
 
     React.useEffect(() => {
-        if (stateControls.type === 'offer' && localStream && status === 'connecting') {
-            try {
-                let peer = new Peer({ initiator: true, stream: localStream });
-                setLocalPeer(peer);
-                peer.on('signal', (data) => {
-                    socket.current.emit('send_offer', { to: currentRoom.userId, offer: data });
-                });
+        if (peer.current) {
+            peer.current.ontrack = (event) => {
+                const [remote] = event.streams;
+                setRemoteStream(remote);
+            };
 
-                socket.current.on('revice_answer', (answer) => {
-                    if (!peer.destroyed) {
-                        if (peer.connected && answer.type !== 'answer') {
-                            peer.signal(answer);
-                        } else if (!peer.connected) {
-                            peer.signal(answer);
-                        }
-                    }
-                });
-
-                peer.on('stream', (stream) => {
-                    setRemoteStream(stream);
-                });
-
-                peer.on('close', () => {
-                    peer.destroy('leavecall');
-                    navigate('/', { replace: true });
-                });
-                peer.on('error', (err) => {
-                    console.log(err);
-                    peer = new Peer({ initiator: true, stream: localStream });
-                });
-
-                peer.on('connect', () => {
+            peer.current.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
+                }
+            };
+            peer.current.addEventListener('connectionstatechange', (event) => {
+                if (peer.current.connectionState === 'connected') {
                     setStatus('connected');
-                });
-            } catch (e) {
-                console.log(e);
-            }
+                } else if (event.currentTarget.iceConnectionState === 'disconnected') {
+                    setStatus('disconnected');
+                    localStream?.getTracks().forEach((track) => track.stop());
+                    peer.current.close();
+                }
+            });
         }
-    }, [status, localStream, stateControls, navigate, socket]);
+    }, [socket, currentRoom.userId, localStream]);
 
     React.useEffect(() => {
         if (status === 'connected' && remoteStream) {
@@ -200,7 +219,13 @@ export default function VideoCall() {
                 };
             }
         }
-    }, [status, remoteStream]);
+        window.onbeforeunload = () => {
+            handleLeaveCall();
+        };
+        return () => {
+            window.onbeforeunload = null;
+        };
+    }, [status, remoteStream, handleLeaveCall]);
 
     const toggleButton = (newstate) => {
         const track = localStream.getTracks().find((track) => track.kind === newstate);
@@ -210,21 +235,6 @@ export default function VideoCall() {
             track.enabled = true;
         }
         setState((prev) => ({ ...prev, [newstate]: !prev[newstate] }));
-    };
-
-    const handleLeaveCall = () => {
-        const localStream = document.getElementById('localStream');
-        const remoteStream = document.getElementById('remoteStream');
-        localStream.srcObject.getTracks().forEach((track) => track.stop());
-        localStream.removeAttribute('src');
-        if (localPeer) {
-            localPeer.destroy('');
-            setLocalPeer(null);
-            remoteStream?.srcObject?.getTracks().forEach((track) => track.stop());
-            remoteStream?.removeAttribute('src');
-            remoteStream?.removeAttribute('srcObjec');
-        }
-        setStatus('disconnected');
     };
 
     const userInfo = React.useMemo(() => {
@@ -237,7 +247,13 @@ export default function VideoCall() {
                     {currentRoom.name}
                 </Typography>
                 <Typography component="label" variant="caption">
-                    {status === 'disconnected' ? 'Không nghe máy' : status === 'pending' ? 'Đang gọi' : 'Đang kết nối'}
+                    {status === 'disconnected'
+                        ? 'Kết thúc'
+                        : status === 'cancel'
+                        ? 'Không nghe máy'
+                        : status === 'pending'
+                        ? 'Đang gọi'
+                        : 'Đang kết nối'}
                 </Typography>
             </Box>
         ) : (
@@ -263,9 +279,17 @@ export default function VideoCall() {
             <div className={styles['video_local']} style={state.video ? {} : { display: 'none' }}>
                 <video id="localStream" playsInline autoPlay />
             </div>
-            {status === 'connected' ? (
+            {status === 'connected' && remoteStream ? (
                 <div className={styles['video_container']}>
                     <video id="remoteStream" playsInline />
+                    {/* <div className={styles['noCamera']}>
+                            <Avatar src={currentRoom.photoURL}>
+                                {currentRoom.photoURL || currentRoom.name.charAt(0).toLowerCase()}
+                            </Avatar>
+                            <Typography component="h4" variant="h5">
+                                {currentRoom.name}
+                            </Typography>
+                        </div> */}
                 </div>
             ) : (
                 userInfo
