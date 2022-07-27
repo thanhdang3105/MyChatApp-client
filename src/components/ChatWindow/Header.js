@@ -166,13 +166,13 @@ function Header() {
                                         }}
                                     >
                                         Thêm thành viên
-                                        <InviteUser visibleModal={{ isInvite, setIsInvite }} />
                                     </MenuItem>
                                 )}
                                 <MenuItem onClick={handleOutRoom}>
                                     {currentRoom.members ? 'Thoát phòng' : 'Xoá'}
                                 </MenuItem>
                             </Menu>
+                            <InviteUser visibleModal={{ isInvite, setIsInvite }} />
                             <SettingModal visibleModal={{ isSetting, setIsSetting }} info={currentRoom} />
                         </>
                     )}
