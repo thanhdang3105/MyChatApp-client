@@ -115,13 +115,11 @@ export default function VideoCall() {
             });
 
             peer.current.ontrack = (event) => {
-                console.log(event);
                 const [remote] = event.streams;
                 setRemoteStream(remote);
             };
 
             peer.current.onicecandidate = (event) => {
-                console.log(event);
                 if (event.candidate) {
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
                 }
@@ -148,8 +146,14 @@ export default function VideoCall() {
                 }
             })();
 
-            peer.current.addEventListener('connectionstatechange', (event) => {
+            peer.current.onsignalingstatechange = (event) => {
                 console.log(event);
+            };
+            peer.current.oniceconnectionstatechange = (event) => {
+                console.log(event);
+            };
+
+            peer.current.addEventListener('connectionstatechange', (event) => {
                 if (peer.current.connectionState === 'connected') {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
@@ -176,13 +180,11 @@ export default function VideoCall() {
             });
 
             peer.current.ontrack = (event) => {
-                console.log(event);
                 const [remote] = event.streams;
                 setRemoteStream(remote);
             };
 
             peer.current.onicecandidate = (event) => {
-                console.log(event);
                 if (event.candidate) {
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: event.candidate });
                 }
@@ -203,8 +205,14 @@ export default function VideoCall() {
                 }
             });
 
-            peer.current.addEventListener('connectionstatechange', (event) => {
+            peer.current.onsignalingstatechange = (event) => {
                 console.log(event);
+            };
+            peer.current.oniceconnectionstatechange = (event) => {
+                console.log(event);
+            };
+
+            peer.current.addEventListener('connectionstatechange', (event) => {
                 if (peer.current.connectionState === 'connected') {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
