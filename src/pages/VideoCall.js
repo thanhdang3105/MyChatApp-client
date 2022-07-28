@@ -30,7 +30,6 @@ export default function VideoCall() {
     React.useEffect(() => {
         if (status === 'disconnected' || !currentRoom._id || status === 'cancel') {
             navigate('/', { replace: true });
-            localStream?.getTrack().forEach((track) => track.stop());
         }
     }, [status, currentRoom, navigate, localStream]);
 
@@ -83,6 +82,14 @@ export default function VideoCall() {
                 .then((stream) => {
                     setLocalStream(stream);
                     document.getElementById('localStream').srcObject = stream;
+                    socket.current.on('revice_answerCall', (response) => {
+                        if (response === 'accept') {
+                            setStatus('connecting');
+                        } else {
+                            stream.getTracks().forEach((track) => track.stop());
+                            setStatus('cancel');
+                        }
+                    });
                     if (stateControls.type === 'offer') {
                         socket.current.emit('calling_user', {
                             to: currentRoom.userId,
@@ -93,13 +100,6 @@ export default function VideoCall() {
                 })
                 .catch((err) => console.log(err));
         }
-        socket.current.on('revice_answerCall', (response) => {
-            if (response === 'accept') {
-                setStatus('connecting');
-            } else {
-                setStatus('cancel');
-            }
-        });
     }, [localStream, stateControls, currentUser, currentRoom, socket]);
 
     React.useEffect(() => {
