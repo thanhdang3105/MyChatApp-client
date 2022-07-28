@@ -30,8 +30,9 @@ export default function VideoCall() {
     React.useEffect(() => {
         if (status === 'disconnected' || !currentRoom._id || status === 'cancel') {
             navigate('/', { replace: true });
+            localStream?.getTrack().forEach((track) => track.stop());
         }
-    }, [status, currentRoom, navigate]);
+    }, [status, currentRoom, navigate, localStream]);
 
     React.useEffect(() => {
         const localStream = document.getElementById('localStream').parentElement;
@@ -96,8 +97,6 @@ export default function VideoCall() {
             if (response === 'accept') {
                 setStatus('connecting');
             } else {
-                localStream.getTrack().forEach((track) => track.stop());
-                setLocalStream(null);
                 setStatus('cancel');
             }
         });
