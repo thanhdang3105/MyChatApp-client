@@ -115,6 +115,9 @@ function HomePage() {
                 className={styles['alert_homePage']}
                 message={
                     <ListItemButton sx={{ width: '100%', flex: 1 }}>
+                        <audio hidden autoPlay={calling.isCalling}>
+                            <source src={process.env.PUBLIC_URL + '/mp3/NhacChuong.mp3'} />
+                        </audio>
                         <Typography component="h5" variant="h6">
                             {calling?.name} đang gọi bạn
                         </Typography>
