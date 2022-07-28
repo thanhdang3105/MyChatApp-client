@@ -146,7 +146,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 30%;
+    width: 35%;
     padding: 15px;
     background-color: white;
 }
@@ -156,6 +156,9 @@
         .wrapper_form{
             max-width: 60%;
         }
+    }
+    .modal_fogortPWD{
+        width: 60%;
     }
 }
 
@@ -169,5 +172,8 @@
         .wrapper_authen-container{
             width: 80%;
         }
+    }
+    .modal_fogortPWD{
+        width: 90%;
     }
 }
