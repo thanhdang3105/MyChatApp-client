@@ -7,14 +7,18 @@ import { AuthContext } from '../../provider/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { HighlightOff } from '@mui/icons-material';
 import { AppContext } from '../../provider/AppProvider';
+import { useDispatch } from 'react-redux';
+import { currentRoomSlice } from '../../redux/reducer/currentRoomSlice';
 
 function UserInfo() {
     const { currentUser, setCurrentUser, socket } = React.useContext(AuthContext);
     const { setIsVisibleMobileSider } = React.useContext(AppContext);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const handleSignOut = () => {
         socket.current.disconnect();
+        dispatch(currentRoomSlice.actions.setState({}));
         signOut(auth);
         localStorage.removeItem('rememberId');
         setCurrentUser(null);
