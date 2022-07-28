@@ -135,6 +135,10 @@ export default function VideoCall() {
                     } catch (e) {
                         console.error('Error adding received ice candidate', e);
                     }
+                } else if (signal === 'close') {
+                    setStatus('disconnected');
+                    localStream?.getTracks().forEach((track) => track.stop());
+                    peer.current.close();
                 }
             });
 
@@ -145,13 +149,6 @@ export default function VideoCall() {
                     socket.current.emit('send_signal', { to: currentRoom.userId, signal: offer });
                 }
             })();
-
-            peer.current.onsignalingstatechange = (event) => {
-                console.log(event);
-            };
-            peer.current.oniceconnectionstatechange = (event) => {
-                console.log(event);
-            };
 
             peer.current.addEventListener('connectionstatechange', (event) => {
                 if (peer.current.connectionState === 'connected') {
@@ -202,15 +199,12 @@ export default function VideoCall() {
                     } catch (e) {
                         console.error('Error adding received ice candidate', e);
                     }
+                } else if (signal === 'close') {
+                    setStatus('disconnected');
+                    localStream?.getTracks().forEach((track) => track.stop());
+                    peer.current.close();
                 }
             });
-
-            peer.current.onsignalingstatechange = (event) => {
-                console.log(event);
-            };
-            peer.current.oniceconnectionstatechange = (event) => {
-                console.log(event);
-            };
 
             peer.current.addEventListener('connectionstatechange', (event) => {
                 if (peer.current.connectionState === 'connected') {
@@ -225,6 +219,7 @@ export default function VideoCall() {
     }, [configPeer, localStream, socket, stateControls, currentRoom]);
 
     const handleLeaveCall = React.useCallback(() => {
+        socket.current.emit('send_signal', { to: currentRoom.userId, signal: 'close' });
         setStatus('disconnected');
         const localVideo = document.getElementById('localStream');
         const remoteVideo = document.getElementById('remoteStream');
