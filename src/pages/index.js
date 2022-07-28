@@ -112,10 +112,11 @@ function HomePage() {
                 open={calling.isCalling}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                 autoHideDuration={10000}
+                onClose={() => handleAnswerCall('cancel')}
                 className={styles['alert_homePage']}
                 message={
                     <ListItemButton sx={{ width: '100%', flex: 1 }}>
-                        <audio hidden autoPlay={calling.isCalling}>
+                        <audio hidden autoPlay={calling.isCalling} loop>
                             <source src={process.env.PUBLIC_URL + '/mp3/NhacChuong.mp3'} />
                         </audio>
                         <Typography component="h5" variant="h6">
