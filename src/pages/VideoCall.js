@@ -96,6 +96,8 @@ export default function VideoCall() {
             if (response === 'accept') {
                 setStatus('connecting');
             } else {
+                localStream.getTrack().forEach((track) => track.stop());
+                setLocalStream(null);
                 setStatus('cancel');
             }
         });

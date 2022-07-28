@@ -111,9 +111,21 @@ function HomePage() {
             <Snackbar
                 open={calling.isCalling}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                autoHideDuration={10000}
+                autoHideDuration={30000}
                 onClose={() => handleAnswerCall('cancel')}
                 className={styles['alert_homePage']}
+                action={
+                    <>
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            sx={{ p: 0.5 }}
+                            onClick={() => handleAnswerCall('cancel')}
+                        >
+                            <PhoneDisabled />
+                        </IconButton>
+                    </>
+                }
                 message={
                     <ListItemButton sx={{ width: '100%', flex: 1 }}>
                         <audio hidden autoPlay={calling.isCalling} loop>
@@ -124,9 +136,6 @@ function HomePage() {
                         </Typography>
                         <IconButton onClick={() => handleAnswerCall('accept')}>
                             <PhoneInTalk />
-                        </IconButton>
-                        <IconButton onClick={() => handleAnswerCall('cancel')}>
-                            <PhoneDisabled />
                         </IconButton>
                     </ListItemButton>
                 }
