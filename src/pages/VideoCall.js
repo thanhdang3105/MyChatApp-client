@@ -29,9 +29,15 @@ export default function VideoCall() {
 
     React.useEffect(() => {
         if (status === 'disconnected' || !currentRoom._id || status === 'cancel') {
-            setTimeout(() => {
-                navigate('/', { replace: true });
-            }, 2000);
+            try {
+                localStream?.getTracks().forEach((track) => track.stop());
+                peer.current.close();
+                setTimeout(() => {
+                    navigate('/', { replace: true });
+                }, 2000);
+            } catch (e) {
+                console.log(e);
+            }
         }
     }, [status, currentRoom, navigate, localStream]);
 
@@ -109,7 +115,6 @@ export default function VideoCall() {
                             },
                             (response) => {
                                 if (response) {
-                                    console.log(response);
                                     stream.getTracks().forEach((track) => track.stop());
                                     setStatus(response);
                                     setTimeout(() => {
@@ -122,13 +127,16 @@ export default function VideoCall() {
                 })
                 .catch((err) => console.log(err));
         }
-    }, [localStream, stateControls, currentUser, currentRoom, socket]);
+    }, [localStream, stateControls, currentUser, currentRoom, socket, navigate]);
 
     React.useEffect(() => {
         if (stateControls.type === 'offer' && localStream && status !== 'pending') {
             localStream.getTracks().forEach((track) => {
                 try {
-                    if (!peer.current.getSenders().find((sender) => sender.track.id === track.id)) {
+                    if (
+                        !peer.current.getSenders().find((sender) => sender.track.id === track.id) &&
+                        peer.current.signalingState !== 'closed'
+                    ) {
                         peer.current.addTrack(track, localStream);
                     }
                 } catch (er) {
@@ -159,8 +167,6 @@ export default function VideoCall() {
                     }
                 } else if (signal === 'close') {
                     setStatus('disconnected');
-                    localStream?.getTracks().forEach((track) => track.stop());
-                    peer.current.close();
                 }
             });
 
@@ -177,8 +183,6 @@ export default function VideoCall() {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
                     setStatus('disconnected');
-                    localStream?.getTracks().forEach((track) => track.stop());
-                    peer.current.close();
                 }
             });
         }
@@ -190,7 +194,10 @@ export default function VideoCall() {
 
             localStream.getTracks().forEach((track) => {
                 try {
-                    if (!peer.current.getSenders().find((sender) => sender.track.id === track.id)) {
+                    if (
+                        !peer.current.getSenders().find((sender) => sender.track.id === track.id) &&
+                        peer.current.signalingState !== 'closed'
+                    ) {
                         peer.current.addTrack(track, localStream);
                     }
                 } catch (er) {
@@ -223,8 +230,6 @@ export default function VideoCall() {
                     }
                 } else if (signal === 'close') {
                     setStatus('disconnected');
-                    localStream?.getTracks().forEach((track) => track.stop());
-                    peer.current.close();
                 }
             });
 
@@ -233,8 +238,6 @@ export default function VideoCall() {
                     setStatus('connected');
                 } else if (event.currentTarget.iceConnectionState === 'disconnected') {
                     setStatus('disconnected');
-                    localStream?.getTracks().forEach((track) => track.stop());
-                    peer.current.close();
                 }
             });
         }
@@ -245,14 +248,10 @@ export default function VideoCall() {
         setStatus('disconnected');
         const localVideo = document.getElementById('localStream');
         const remoteVideo = document.getElementById('remoteStream');
-        localStream.getTracks().forEach((track) => track.stop());
         localVideo?.removeAttribute('srcObjec');
         if (remoteVideo) {
             remoteStream?.getTracks().forEach((track) => track.stop());
             remoteVideo?.removeAttribute('srcObjec');
-        }
-        if (peer.current) {
-            peer.current.close();
         }
     }, [localStream, remoteStream]);
 

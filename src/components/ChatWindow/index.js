@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '../../scss/homePage.module.scss';
-import { List, Box, IconButton, TextareaAutosize } from '@mui/material';
-import { HighlightOff, Send } from '@mui/icons-material';
+import { List, Box, IconButton, TextareaAutosize, CircularProgress } from '@mui/material';
+import { AddPhotoAlternate, HighlightOff, Send } from '@mui/icons-material';
 import { AuthContext } from '../../provider/AuthProvider';
 import axios from 'axios';
 import { AppContext } from '../../provider/AppProvider';
@@ -12,6 +12,8 @@ import { roomsSlice } from '../../redux/reducer/roomsSlice';
 import { currentRoomSlice } from '../../redux/reducer/currentRoomSlice';
 import { addDocument } from '../../firebase/service';
 import EmojiComponent from '../customComponents/EmojiComponent';
+import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import { storage } from '../../firebase/config';
 
 function ChatWindow() {
     const { currentUser, socket } = React.useContext(AuthContext);
@@ -20,6 +22,7 @@ function ChatWindow() {
     const { setNotice, setAlert } = React.useContext(AppContext);
     const [msgRevice, setMsgRevice] = React.useState(null);
     const [listImg, setListImg] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
     const listRef = React.useRef();
 
     const dispatch = useDispatch();
@@ -51,10 +54,18 @@ function ChatWindow() {
                     if (room.members) {
                         setAlert({
                             open: true,
-                            data: { foreignId, name: room.name, photoURL: room.photoURL, text: value.text },
+                            data: {
+                                foreignId,
+                                name: room.name,
+                                photoURL: room.photoURL,
+                                text: value.type === 'img' ? 'Có tin nhắn mới' : value.text,
+                            },
                         });
                     } else {
-                        setAlert({ open: true, data: { ...value, foreignId } });
+                        setAlert({
+                            open: true,
+                            data: { ...value, foreignId, text: value.type === 'img' ? 'Có tin nhắn mới' : value.text },
+                        });
                     }
                     // dispatch(roomsSlice.actions.setStatus({ id: foreignId, status: true }));
                 }
@@ -82,106 +93,162 @@ function ChatWindow() {
         });
     };
 
-    const handleSubmit = (form) => {
-        const dataFrm = new FormData(form);
-        const msg = dataFrm.get('Message');
-        if (msg) {
-            const newMsg = {
-                foreignId: currentRoom._id,
-                userId: currentUser._id,
-                text: msg,
-                photoURL: currentUser.photoURL,
-                name: currentUser.name,
-                createdAt: Date.now(),
-            };
-            document.querySelector('textarea[name="Message"]').value = '';
-            if (!currentRoom.messages) {
-                axios
-                    .post(process.env.REACT_APP_API_URI + '/api/inboxs', {
-                        action: 'create',
-                        data: { users: [currentUser._id, currentRoom._id], lastested: Date.now(), newMsg },
-                    })
-                    .then((res) => {
-                        if (res.status === 200) {
-                            const newInbox = {
-                                ...res.data,
-                                userId: currentRoom._id,
-                                name: currentRoom.name,
-                                photoURL: currentRoom.photoURL,
-                                messages: [newMsg],
-                            };
-                            dispatch(currentRoomSlice.actions.setState(newInbox));
-                            dispatch(roomsSlice.actions.addRoom(newInbox));
-                            addDocument('notify', {
-                                userId: currentRoom._id,
-                                roomId: res.data._id,
-                                lastested: Date.now(),
-                            });
-                            socket.current.emit('send_message-toUsers', {
-                                to: currentRoom._id,
-                                newInbox: {
-                                    ...res.data,
-                                    userId: currentUser._id,
-                                    name: currentUser.name,
-                                    photoURL: currentUser.photoURL,
-                                    messages: [newMsg],
-                                },
-                            });
-                        }
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        setNotice({ open: true, text: 'Lỗi!' });
-                    });
-            } else {
-                axios
-                    .post(process.env.REACT_APP_API_URI + '/api/messages', {
-                        action: 'create',
-                        data: {
-                            ...newMsg,
-                            foreignId: currentRoom._id,
-                        },
-                    })
-                    .then((res) => {
-                        if (res.status === 200) {
-                            const { foreignId, ...value } = newMsg;
-                            const newMessages = [...currentRoom.messages, value];
-                            dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
-                            dispatch(
-                                roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }),
-                            );
-                            sendNotifi(foreignId);
-                            socket.current.emit('send_message-toRoom', { to: foreignId, msg: newMsg });
-                        }
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        setNotice({ open: true, text: 'Lỗi!' });
-                    });
+    const handleSubmit = async (newMsg) => {
+        if (listImg && listImg.length) {
+            const list = [];
+            for (let img of listImg) {
+                const imgRef = await uploadString(ref(storage, img.title), img.img, 'data_url');
+                list.push(await getDownloadURL(imgRef.ref));
             }
+            const newData = { ...newMsg, text: list, type: 'img' };
+            axios
+                .post(process.env.REACT_APP_API_URI + '/api/messages', {
+                    action: 'create',
+                    data: newData,
+                })
+                .then((res) => {
+                    if (res.status === 200) {
+                        setListImg(null);
+                        const { foreignId, ...value } = newData;
+                        const newMessages = [...currentRoom.messages, value];
+                        dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
+                        dispatch(roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }));
+                        setLoading(false);
+                        socket.current.emit('send_message-toRoom', { to: foreignId, msg: newData });
+                    }
+                })
+                .catch((err) => {
+                    setListImg(null);
+                    setLoading(false);
+                    console.log(err);
+                    setNotice({ open: true, text: 'Lỗi!' });
+                });
+        }
+        if (newMsg.text) {
+            axios
+                .post(process.env.REACT_APP_API_URI + '/api/messages', {
+                    action: 'create',
+                    data: newMsg,
+                })
+                .then((res) => {
+                    if (res.status === 200) {
+                        const { foreignId, ...value } = newMsg;
+                        value.type = 'text';
+                        const newMessages = [...currentRoom.messages, value];
+                        dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
+                        dispatch(roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }));
+                        setLoading(false);
+                        socket.current.emit('send_message-toRoom', { to: foreignId, msg: newMsg });
+                    }
+                })
+                .catch((err) => {
+                    setLoading(false);
+                    console.log(err);
+                    setNotice({ open: true, text: 'Lỗi!' });
+                });
         }
     };
 
-    const handleChooseEmoji = (event, emojiObject) => {
+    const handleChooseEmoji = (_, emojiObject) => {
         const inputText = document.querySelector('textarea[name="Message"]');
         inputText.value = inputText.value + emojiObject.emoji;
+    };
+
+    const handleChooseFile = (e) => {
+        const list = Array.from(e.target.files);
+        if (list.length) {
+            list.map((file) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    setListImg((prev) => {
+                        if (prev) {
+                            if (prev.find((img) => img.title === file.name)) {
+                                return prev;
+                            }
+                            return [...prev, { img: reader.result, title: file.name }];
+                        }
+                        return [{ img: reader.result, title: file.name }];
+                    });
+                };
+                return file;
+            });
+        }
     };
 
     const handlePaste = (e) => {
         if (e.clipboardData.types.includes('Files') && e.clipboardData.files[0].type === 'image/png') {
             e.preventDefault();
             const data = e.clipboardData.files[0];
-
             const reader = new FileReader();
             reader.readAsDataURL(data);
             reader.onload = () => {
                 setListImg((prev) => {
                     if (prev) {
-                        return [...prev, { img: reader.result, title: data.lastModified }];
+                        return [...prev, { img: reader.result, title: data.lastModified + '.jpg' }];
                     }
-                    return [{ img: reader.result, title: data.lastModified }];
+                    return [{ img: reader.result, title: data.lastModified + '.jpg' }];
                 });
             };
+        }
+    };
+
+    const handleSubmitForm = (value) => {
+        if (!value && !listImg && !listImg?.length) {
+            return value;
+        }
+        const newMsg = {
+            foreignId: currentRoom._id,
+            userId: currentUser._id,
+            text: value,
+            photoURL: currentUser.photoURL,
+            name: currentUser.name,
+            createdAt: Date.now(),
+        };
+        setLoading(true);
+        document.querySelector('textarea[name="Message"]').value = '';
+        if (!currentRoom.messages) {
+            axios
+                .post(process.env.REACT_APP_API_URI + '/api/inboxs', {
+                    action: 'create',
+                    data: { users: [currentUser._id, currentRoom._id], lastested: Date.now(), newMsg },
+                })
+                .then((res) => {
+                    if (res.status === 200) {
+                        const newInbox = {
+                            ...res.data,
+                            userId: currentRoom._id,
+                            name: currentRoom.name,
+                            photoURL: currentRoom.photoURL,
+                            messages: [newMsg],
+                        };
+                        dispatch(currentRoomSlice.actions.setState(newInbox));
+                        dispatch(roomsSlice.actions.addRoom(newInbox));
+                        addDocument('notify', {
+                            userId: currentRoom._id,
+                            roomId: res.data._id,
+                            lastested: Date.now(),
+                        });
+                        handleSubmit({ ...newMsg, foreignId: res.data._id });
+                        socket.current.emit('send_message-toUsers', {
+                            to: currentRoom._id,
+                            newInbox: {
+                                ...res.data,
+                                userId: currentUser._id,
+                                name: currentUser.name,
+                                photoURL: currentUser.photoURL,
+                                messages: [newMsg],
+                            },
+                        });
+                    }
+                })
+                .catch((err) => {
+                    setLoading(false);
+                    console.log(err);
+                    setNotice({ open: true, text: 'Lỗi!' });
+                });
+        } else {
+            handleSubmit(newMsg);
         }
     };
 
@@ -218,18 +285,24 @@ function ChatWindow() {
                 component={'form'}
                 onSubmit={(e) => {
                     e.preventDefault();
-                    handleSubmit(e.target);
+                    const dataFrm = new FormData(e.currentTarget);
+                    const msg = dataFrm.get('Message');
+                    handleSubmitForm(msg);
                 }}
                 className={styles['chatwindow_input']}
             >
                 <EmojiComponent handle={handleChooseEmoji} />
+                <IconButton component="label">
+                    <input type="file" hidden onChange={handleChooseFile} multiple accept="image/*" />
+                    <AddPhotoAlternate style={{ color: 'var(--text-color)' }} />
+                </IconButton>
                 <TextareaAutosize
                     name="Message"
                     // onInput={(e) => setMsg(e.target.value)}
                     onKeyDown={(e) => {
                         if (e.code === 'Enter') {
                             e.preventDefault();
-                            handleSubmit(e.target.form);
+                            handleSubmitForm(e.target.value);
                         }
                     }}
                     onPaste={handlePaste}
@@ -238,12 +311,12 @@ function ChatWindow() {
                     style={{ width: '100%', lineHeight: 2, paddingRight: '30px' }}
                 />
                 <IconButton
-                    type="submit"
+                    type={loading ? 'button' : 'submit'}
                     className={styles['chatwindow_input-icon']}
                     aria-label="send_mess"
                     component="button"
                 >
-                    <Send />
+                    {loading ? <CircularProgress color="secondary" size="20" /> : <Send />}
                 </IconButton>
             </Box>
         </Box>
