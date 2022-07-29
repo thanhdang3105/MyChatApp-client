@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthContext } from './AuthProvider';
 import { useDispatch, useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { currentRoomSlice } from '../redux/reducer/currentRoomSlice';
 import { roomsSlice } from '../redux/reducer/roomsSlice';
 import { usersSlice } from '../redux/reducer/usersSlice';
@@ -18,6 +19,7 @@ export default function AppProvider({ children }) {
     const [alert, setAlert] = React.useState({ open: false, data: null });
     const [calling, setCalling] = React.useState({ isCalling: false, name: null, id: null });
     const dispatch = useDispatch();
+    const location = useLocation();
 
     React.useEffect(() => {
         socket.current.on('user_online', (data) => {
@@ -31,6 +33,7 @@ export default function AppProvider({ children }) {
         socket.current.on('recive_userMsg', (data) => {
             // data.new = true;
             dispatch(roomsSlice.actions.addRoom(data));
+            socket.current.emit('join_room', data._id);
         });
 
         socket.current.on('user_outRoom', (data) => {
@@ -63,7 +66,11 @@ export default function AppProvider({ children }) {
             dispatch(currentRoomSlice.actions.changeInfo({ id: data._id, data }));
         });
         socket.current.on('send_call', (data) => {
-            setCalling({ isCalling: true, name: data.name, id: data.from });
+            if (location.pathname === '/videoCall') {
+                socket.current.emit('answer_call', { id: data.from, mess: 'Người dùng hiện đang có cuộc gọi khác' });
+            } else {
+                setCalling({ isCalling: true, name: data.name, id: data.from });
+            }
         });
     }, [socket, dispatch]);
 

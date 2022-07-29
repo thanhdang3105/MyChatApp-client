@@ -29,7 +29,9 @@ export default function VideoCall() {
 
     React.useEffect(() => {
         if (status === 'disconnected' || !currentRoom._id || status === 'cancel') {
-            navigate('/', { replace: true });
+            setTimeout(() => {
+                navigate('/', { replace: true });
+            }, 2000);
         }
     }, [status, currentRoom, navigate, localStream]);
 
@@ -75,27 +77,47 @@ export default function VideoCall() {
     }, []);
 
     React.useEffect(() => {
-        if (!localStream) {
+        const local = document.getElementById('localStream');
+        if (!localStream && local) {
             const mediaConfig = { audio: stateControls.audio, video: stateControls.video };
             navigator.mediaDevices
                 .getUserMedia(mediaConfig)
                 .then((stream) => {
                     setLocalStream(stream);
-                    document.getElementById('localStream').srcObject = stream;
+                    local.srcObject = stream;
                     socket.current.on('revice_answerCall', (response) => {
                         if (response === 'accept') {
                             setStatus('connecting');
-                        } else {
+                        } else if (response === 'cancel') {
                             stream.getTracks().forEach((track) => track.stop());
                             setStatus('cancel');
+                        } else {
+                            stream.getTracks().forEach((track) => track.stop());
+                            setStatus(response);
+                            setTimeout(() => {
+                                navigate('/', { replace: true });
+                            }, 2000);
                         }
                     });
                     if (stateControls.type === 'offer') {
-                        socket.current.emit('calling_user', {
-                            to: currentRoom.userId,
-                            from: currentUser._id,
-                            name: currentUser.name,
-                        });
+                        socket.current.emit(
+                            'calling_user',
+                            {
+                                to: currentRoom.userId,
+                                from: currentUser._id,
+                                name: currentUser.name,
+                            },
+                            (response) => {
+                                if (response) {
+                                    console.log(response);
+                                    stream.getTracks().forEach((track) => track.stop());
+                                    setStatus(response);
+                                    setTimeout(() => {
+                                        navigate('/', { replace: true });
+                                    }, 2000);
+                                }
+                            },
+                        );
                     }
                 })
                 .catch((err) => console.log(err));
@@ -281,7 +303,9 @@ export default function VideoCall() {
                         ? 'Không nghe máy'
                         : status === 'pending'
                         ? 'Đang gọi'
-                        : 'Đang kết nối'}
+                        : status === 'connected'
+                        ? 'Đang kết nối'
+                        : status}
                 </Typography>
             </Box>
         ) : (
@@ -304,7 +328,7 @@ export default function VideoCall() {
                     </IconButton>
                 </div>
             )}
-            <div className={styles['video_local']} style={state.video ? {} : { display: 'none' }}>
+            <div className={styles['video_local']} style={state.video ? { display: 'block' } : { display: 'none' }}>
                 <video id="localStream" playsInline autoPlay />
             </div>
             {status === 'connected' && remoteStream ? (

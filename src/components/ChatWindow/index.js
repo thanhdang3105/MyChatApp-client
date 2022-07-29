@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '../../scss/homePage.module.scss';
 import { List, Box, IconButton, TextareaAutosize } from '@mui/material';
-import { Send } from '@mui/icons-material';
+import { HighlightOff, Send } from '@mui/icons-material';
 import { AuthContext } from '../../provider/AuthProvider';
 import axios from 'axios';
 import { AppContext } from '../../provider/AppProvider';
@@ -11,6 +11,7 @@ import { currentRoomSelector, roomsSelector } from '../../redux/selector';
 import { roomsSlice } from '../../redux/reducer/roomsSlice';
 import { currentRoomSlice } from '../../redux/reducer/currentRoomSlice';
 import { addDocument } from '../../firebase/service';
+import EmojiComponent from '../customComponents/EmojiComponent';
 
 function ChatWindow() {
     const { currentUser, socket } = React.useContext(AuthContext);
@@ -18,6 +19,7 @@ function ChatWindow() {
     const rooms = useSelector(roomsSelector);
     const { setNotice, setAlert } = React.useContext(AppContext);
     const [msgRevice, setMsgRevice] = React.useState(null);
+    const [listImg, setListImg] = React.useState(null);
     const listRef = React.useRef();
 
     const dispatch = useDispatch();
@@ -92,8 +94,8 @@ function ChatWindow() {
                 name: currentUser.name,
                 createdAt: Date.now(),
             };
+            document.querySelector('textarea[name="Message"]').value = '';
             if (!currentRoom.messages) {
-                form[0].value = '';
                 axios
                     .post(process.env.REACT_APP_API_URI + '/api/inboxs', {
                         action: 'create',
@@ -132,7 +134,6 @@ function ChatWindow() {
                         setNotice({ open: true, text: 'Lỗi!' });
                     });
             } else {
-                form[0].value = '';
                 axios
                     .post(process.env.REACT_APP_API_URI + '/api/messages', {
                         action: 'create',
@@ -161,6 +162,29 @@ function ChatWindow() {
         }
     };
 
+    const handleChooseEmoji = (event, emojiObject) => {
+        const inputText = document.querySelector('textarea[name="Message"]');
+        inputText.value = inputText.value + emojiObject.emoji;
+    };
+
+    const handlePaste = (e) => {
+        if (e.clipboardData.types.includes('Files') && e.clipboardData.files[0].type === 'image/png') {
+            e.preventDefault();
+            const data = e.clipboardData.files[0];
+
+            const reader = new FileReader();
+            reader.readAsDataURL(data);
+            reader.onload = () => {
+                setListImg((prev) => {
+                    if (prev) {
+                        return [...prev, { img: reader.result, title: data.lastModified }];
+                    }
+                    return [{ img: reader.result, title: data.lastModified }];
+                });
+            };
+        }
+    };
+
     return (
         <Box className={styles['chatwindow_wrapper']}>
             <List ref={listRef} className={styles['chatwindow_wrapper-listMsg']}>
@@ -170,6 +194,26 @@ function ChatWindow() {
                           <ItemMsg message={message} currentUser={currentUser} key={index} />
                       ))}
             </List>
+            {listImg && (
+                <ul className={styles['list_Img']}>
+                    {listImg.map((item) => (
+                        <li key={item.title} className={styles['item_listImg']}>
+                            <HighlightOff
+                                onClick={() => {
+                                    setListImg((prev) => {
+                                        const newList = prev.filter((img) => img.title !== item.title);
+                                        if (newList.length === 0) {
+                                            return null;
+                                        }
+                                        return newList;
+                                    });
+                                }}
+                            />
+                            <img src={item.img} srcSet={item.img} alt={item.title} loading="lazy" />
+                        </li>
+                    ))}
+                </ul>
+            )}
             <Box
                 component={'form'}
                 onSubmit={(e) => {
@@ -178,6 +222,7 @@ function ChatWindow() {
                 }}
                 className={styles['chatwindow_input']}
             >
+                <EmojiComponent handle={handleChooseEmoji} />
                 <TextareaAutosize
                     name="Message"
                     // onInput={(e) => setMsg(e.target.value)}
@@ -187,6 +232,7 @@ function ChatWindow() {
                             handleSubmit(e.target.form);
                         }
                     }}
+                    onPaste={handlePaste}
                     placeholder="Nhập văn bản..."
                     className={styles['chatwindow_input-textArea']}
                     style={{ width: '100%', lineHeight: 2, paddingRight: '30px' }}

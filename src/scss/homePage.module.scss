@@ -85,9 +85,43 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    .list_Img{
+        width: 100%;
+        height: fit-content;
+        display: flex;
+        flex-wrap: wrap-reverse;
+        padding: 0;
+        gap: 15px;
+        .item_listImg{
+            max-width: calc(20% - (45px / 3.5));
+            max-height: 150px;
+            overflow: hidden;
+            position: relative;
+            &:hover {
+                svg{
+                    opacity: 1;
+                }
+            }
+            svg{
+                opacity: 0;
+                position: absolute;
+                top: 0;
+                right: 0;
+                color: var(--text-color);
+                cursor: pointer;
+            }
+            img{
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+        }
+    }
     .chatwindow_input{
         width: 100%;
         height: 35px;
+        display: flex;
         padding: 0 2px 2px;
         position: relative;
         .chatwindow_input-textArea{
@@ -166,6 +200,7 @@
     }
     .chatwindow_msg--me{
         flex-direction: row-reverse;
+        padding-bottom: 0;
         .chatwindow_msg-content{
             flex-direction: column-reverse;
             align-items: flex-end;
@@ -197,9 +232,26 @@
             }
         }
     }
+    .chatwindow_wrapper{
+        .list_Img{
+            .item_listImg{
+                max-width: calc(25% - (45px / 4));
+                max-height: 120px;
+            }
+        }
+    }
 }
 
 @media (max-width: 768px) {
+    .chatwindow_wrapper{
+        .list_Img{
+            gap: 10px;
+            .item_listImg{
+                max-width: calc(25% - (30px / 4));
+                max-height: 120px;
+            }
+        }
+    }
     .homPage_header-title--box{
         h4{
             font-size: 16px;
@@ -246,6 +298,14 @@
 }
 
 @media (max-width: 480px) {
+    .chatwindow_wrapper{
+        .list_Img{
+            .item_listImg{
+                max-width: calc(50% - (10px / 2));
+                max-height: 120px;
+            }
+        }
+    }
     .chatwindow_msg-name{
             font-size: 14px;
     }
