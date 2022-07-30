@@ -25,6 +25,10 @@ function UserInfo() {
         navigate('/authentication', { replace: true });
     };
 
+    window.onbeforeunload = () => {
+        socket.current.disconnect();
+    };
+
     const showLayoutAccount = () => {
         navigate('/account');
     };

@@ -19,8 +19,9 @@ export const currentRoomSlice = createSlice({
             return state;
         },
         newMessages: (state, { payload }) => {
-            if (state._id === payload.id) {
-                return { ...state, messages: [...state.messages, payload.messages] };
+            const { id, messages } = payload;
+            if (state._id === id) {
+                return { ...state, messages: [...state.messages, ...messages] };
             }
             return state;
         },

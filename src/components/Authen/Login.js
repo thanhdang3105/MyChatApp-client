@@ -175,7 +175,14 @@ function Login({ setMethod }) {
                     sx={{ mt: 3, mb: 2, borderRadius: '15px' }}
                     disabled={loading}
                 >
-                    {loading && <CircularProgress color="secondary" size="20" />} Đăng nhập
+                    {loading && (
+                        <CircularProgress
+                            color="primary"
+                            size="20"
+                            sx={{ width: '20px', height: '20px', m: '0 10px 0 -40px' }}
+                        />
+                    )}{' '}
+                    Đăng nhập
                 </Button>
                 <Button className={styles['btn-link']} color="inherit" onClick={() => setIsFogortPwd(true)}>
                     Quên mật khẩu?

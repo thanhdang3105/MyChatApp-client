@@ -1,18 +1,9 @@
 import React from 'react';
 import styles from '../../scss/homePage.module.scss';
 import { formatRelative } from 'date-fns/esm';
-import {
-    Avatar,
-    Box,
-    ImageList,
-    ImageListItem,
-    ListItem,
-    ListItemAvatar,
-    ListItemText,
-    Typography,
-} from '@mui/material';
+import { Avatar, Box, ListItem, ListItemAvatar, ListItemText, Typography } from '@mui/material';
 
-function ItemMsg({ message, currentUser }) {
+function ItemMsg({ message, currentUser, isPreview }) {
     const formatDate = React.useCallback((createdAt) => {
         let formatedDate = '';
         if (createdAt) {
@@ -47,18 +38,22 @@ function ItemMsg({ message, currentUser }) {
                 secondary={
                     <Box component="span" className={styles['msg_content-wrapper']}>
                         {message.type === 'img' ? (
-                            <ImageList
-                                variant="masonry"
-                                cols={message.text.length > 3 ? 3 : message.text.length}
-                                gap={8}
-                                rowHeight={message.text.length < 3 ? 300 : 'auto'}
-                            >
-                                {message.text.map((item, index) => (
-                                    <ImageListItem key={index}>
-                                        <img src={item} srcSet={item} alt={item + index} loading="lazy" />
-                                    </ImageListItem>
-                                ))}
-                            </ImageList>
+                            <ul className={styles['msg_content-wrapper--listImg']}>
+                                {message.text.map((item, index) => {
+                                    const id = message._id + '-' + index;
+                                    return (
+                                        <li
+                                            key={index}
+                                            className={styles['msg_content-wrapper--itemImg']}
+                                            onClick={() => {
+                                                isPreview({ open: true, id });
+                                            }}
+                                        >
+                                            <img src={item} srcSet={item} alt={id} loading="lazy" />
+                                        </li>
+                                    );
+                                })}
+                            </ul>
                         ) : (
                             <Typography className={styles['msg_content-wrapper--text']} component="span" variant="body">
                                 {message.text}

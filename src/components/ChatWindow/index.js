@@ -14,6 +14,7 @@ import { addDocument } from '../../firebase/service';
 import EmojiComponent from '../customComponents/EmojiComponent';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
 import { storage } from '../../firebase/config';
+import ListImgSwiper from '../modal/ListImgSwiper';
 
 function ChatWindow() {
     const { currentUser, socket } = React.useContext(AuthContext);
@@ -23,6 +24,7 @@ function ChatWindow() {
     const [msgRevice, setMsgRevice] = React.useState(null);
     const [listImg, setListImg] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
+    const [openModalPreviewImg, setOpenModalPreviewImg] = React.useState({ open: false, id: null });
     const listRef = React.useRef();
 
     const dispatch = useDispatch();
@@ -39,18 +41,19 @@ function ChatWindow() {
 
     React.useEffect(() => {
         if (msgRevice) {
-            const { foreignId, ...value } = msgRevice;
+            const { foreignId, value } = msgRevice;
             dispatch(currentRoomSlice.actions.newMessages({ id: foreignId, messages: value }));
             rooms.map((room) => {
                 if (room._id === foreignId) {
                     dispatch(
                         roomsSlice.actions.updateState({
                             id: foreignId,
-                            data: { messages: [...room.messages, value] },
+                            data: { messages: [...room.messages, ...value] },
                         }),
                     );
                 }
                 if (room._id === foreignId && room._id !== currentRoom._id) {
+                    const notifyMess = value[value.length - 1];
                     if (room.members) {
                         setAlert({
                             open: true,
@@ -58,13 +61,17 @@ function ChatWindow() {
                                 foreignId,
                                 name: room.name,
                                 photoURL: room.photoURL,
-                                text: value.type === 'img' ? 'Có tin nhắn mới' : value.text,
+                                text: notifyMess.type === 'img' ? 'Có tin nhắn mới' : notifyMess.text,
                             },
                         });
                     } else {
                         setAlert({
                             open: true,
-                            data: { ...value, foreignId, text: value.type === 'img' ? 'Có tin nhắn mới' : value.text },
+                            data: {
+                                ...notifyMess,
+                                foreignId,
+                                text: notifyMess.type === 'img' ? 'Có tin nhắn mới' : notifyMess.text,
+                            },
                         });
                     }
                     // dispatch(roomsSlice.actions.setStatus({ id: foreignId, status: true }));
@@ -93,14 +100,18 @@ function ChatWindow() {
         });
     };
 
-    const handleSubmit = async (newMsg) => {
+    const handleSubmitImg = async (newMsg) => {
         if (listImg && listImg.length) {
             const list = [];
             for (let img of listImg) {
                 const imgRef = await uploadString(ref(storage, img.title), img.img, 'data_url');
                 list.push(await getDownloadURL(imgRef.ref));
             }
+            if (!list.length) {
+                return list;
+            }
             const newData = { ...newMsg, text: list, type: 'img' };
+            setListImg(null);
             axios
                 .post(process.env.REACT_APP_API_URI + '/api/messages', {
                     action: 'create',
@@ -108,45 +119,73 @@ function ChatWindow() {
                 })
                 .then((res) => {
                     if (res.status === 200) {
-                        setListImg(null);
                         const { foreignId, ...value } = newData;
-                        const newMessages = [...currentRoom.messages, value];
-                        dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
-                        dispatch(roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }));
-                        setLoading(false);
-                        socket.current.emit('send_message-toRoom', { to: foreignId, msg: newData });
+                        if (newMsg.text) {
+                            handleSubmitText(newMsg, value);
+                        } else {
+                            const newMessages = [...currentRoom.messages, value];
+                            dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
+                            dispatch(
+                                roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }),
+                            );
+                            socket.current.emit('send_message-toRoom', {
+                                to: foreignId,
+                                msg: { foreignId, value: [value] },
+                            });
+                            sendNotifi(foreignId);
+                            setLoading(false);
+                        }
                     }
                 })
                 .catch((err) => {
                     setListImg(null);
                     setLoading(false);
-                    console.log(err);
-                    setNotice({ open: true, text: 'Lỗi!' });
-                });
-        }
-        if (newMsg.text) {
-            axios
-                .post(process.env.REACT_APP_API_URI + '/api/messages', {
-                    action: 'create',
-                    data: newMsg,
-                })
-                .then((res) => {
-                    if (res.status === 200) {
-                        const { foreignId, ...value } = newMsg;
-                        value.type = 'text';
-                        const newMessages = [...currentRoom.messages, value];
-                        dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
-                        dispatch(roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }));
-                        setLoading(false);
-                        socket.current.emit('send_message-toRoom', { to: foreignId, msg: newMsg });
+                    if (newMsg.text) {
+                        setLoading(true);
+                        handleSubmitText(newMsg);
                     }
-                })
-                .catch((err) => {
-                    setLoading(false);
                     console.log(err);
                     setNotice({ open: true, text: 'Lỗi!' });
                 });
+        } else if (newMsg.text) {
+            handleSubmitText(newMsg);
         }
+    };
+
+    const handleSubmitText = (newMsg, newMsg2) => {
+        axios
+            .post(process.env.REACT_APP_API_URI + '/api/messages', {
+                action: 'create',
+                data: newMsg,
+            })
+            .then((res) => {
+                if (res.status === 200) {
+                    const { foreignId, ...value } = newMsg;
+                    value.type = 'text';
+                    let newMessages = [...currentRoom.messages, value];
+                    if (newMsg2) {
+                        newMessages = [...currentRoom.messages, newMsg2, value];
+                        socket.current.emit('send_message-toRoom', {
+                            to: foreignId,
+                            msg: { foreignId, value: [newMsg2, value] },
+                        });
+                    } else {
+                        socket.current.emit('send_message-toRoom', {
+                            to: foreignId,
+                            msg: { foreignId, value: [value] },
+                        });
+                    }
+                    sendNotifi(foreignId);
+                    dispatch(currentRoomSlice.actions.updateState({ messages: newMessages }));
+                    dispatch(roomsSlice.actions.updateState({ id: foreignId, data: { messages: newMessages } }));
+                    setLoading(false);
+                }
+            })
+            .catch((err) => {
+                setLoading(false);
+                console.log(err);
+                setNotice({ open: true, text: 'Lỗi!' });
+            });
     };
 
     const handleChooseEmoji = (_, emojiObject) => {
@@ -229,7 +268,7 @@ function ChatWindow() {
                             roomId: res.data._id,
                             lastested: Date.now(),
                         });
-                        handleSubmit({ ...newMsg, foreignId: res.data._id });
+                        handleSubmitImg({ ...newMsg, foreignId: res.data._id });
                         socket.current.emit('send_message-toUsers', {
                             to: currentRoom._id,
                             newInbox: {
@@ -248,17 +287,23 @@ function ChatWindow() {
                     setNotice({ open: true, text: 'Lỗi!' });
                 });
         } else {
-            handleSubmit(newMsg);
+            handleSubmitImg(newMsg);
         }
     };
 
     return (
         <Box className={styles['chatwindow_wrapper']}>
+            <ListImgSwiper room={currentRoom} open={{ openModalPreviewImg, setOpenModalPreviewImg }} />
             <List ref={listRef} className={styles['chatwindow_wrapper-listMsg']}>
                 {!currentRoom.messages?.length
                     ? ''
                     : currentRoom.messages.map((message, index) => (
-                          <ItemMsg message={message} currentUser={currentUser} key={index} />
+                          <ItemMsg
+                              message={message}
+                              currentUser={currentUser}
+                              key={index}
+                              isPreview={setOpenModalPreviewImg}
+                          />
                       ))}
             </List>
             {listImg && (
@@ -316,7 +361,11 @@ function ChatWindow() {
                     aria-label="send_mess"
                     component="button"
                 >
-                    {loading ? <CircularProgress color="secondary" size="20" /> : <Send />}
+                    {loading ? (
+                        <CircularProgress color="primary" size="16" sx={{ width: '100%', height: '100%' }} />
+                    ) : (
+                        <Send />
+                    )}
                 </IconButton>
             </Box>
         </Box>
