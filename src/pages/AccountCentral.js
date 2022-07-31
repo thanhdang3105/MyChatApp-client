@@ -16,7 +16,7 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { ArrowBack, Close, DownloadDone, Edit, Visibility, VisibilityOff } from '@mui/icons-material';
+import { ArrowBack, BorderColorRounded, Close, DownloadDone, Visibility, VisibilityOff } from '@mui/icons-material';
 import { AuthContext } from '../provider/AuthProvider';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { storage } from '../firebase/config';
@@ -242,7 +242,7 @@ function AccountCentral() {
                             />
                         </>
                     ) : (
-                        <Edit
+                        <BorderColorRounded
                             onClick={() => {
                                 const saveName = document.getElementById(id).innerText;
                                 setBackName(saveName);

@@ -38,11 +38,11 @@ function ItemMsg({ message, currentUser, isPreview }) {
                 secondary={
                     <Box component="span" className={styles['msg_content-wrapper']}>
                         {message.type === 'img' ? (
-                            <ul className={styles['msg_content-wrapper--listImg']}>
+                            <span className={styles['msg_content-wrapper--listImg']}>
                                 {message.text.map((item, index) => {
                                     const id = message._id + '-' + index;
                                     return (
-                                        <li
+                                        <span
                                             key={index}
                                             className={styles['msg_content-wrapper--itemImg']}
                                             onClick={() => {
@@ -50,10 +50,10 @@ function ItemMsg({ message, currentUser, isPreview }) {
                                             }}
                                         >
                                             <img src={item} srcSet={item} alt={id} loading="lazy" />
-                                        </li>
+                                        </span>
                                     );
                                 })}
-                            </ul>
+                            </span>
                         ) : (
                             <Typography className={styles['msg_content-wrapper--text']} component="span" variant="body">
                                 {message.text}

@@ -58,7 +58,7 @@
         width: 100%;
         height: 100px;
         display: flex;
-        padding: 0 30px;
+        padding: 0;
         position: relative;
         list-style: none;
         overflow: hidden;
@@ -92,7 +92,7 @@
             }
         }
     }
-    .btn_close{
+    .btn_modalHeader{
         top: 0;
         right: 0;
         transform: none;
@@ -110,15 +110,15 @@
     }
 }
 
-@media (max-width: 768px) {
-    .wrapper_modal-listImg{
-        .modal_listImg-thumb{
-            .modal_listImg-itemThumb{
-                width: 15%
-            }
-        }
-    }
-}
+// @media (max-width: 768px) {
+//     .wrapper_modal-listImg{
+//         .modal_listImg-thumb{
+//             .modal_listImg-itemThumb{
+//                 width: 15%
+//             }
+//         }
+//     }
+// }
 
 
 @media (max-width: 480px) {

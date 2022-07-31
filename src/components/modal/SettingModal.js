@@ -1,4 +1,4 @@
-import { AddPhotoAlternate, Close, Image, PeopleOutlined } from '@mui/icons-material';
+import { AddPhotoAlternate, Close, Image, PeopleOutlined, PhotoLibrary } from '@mui/icons-material';
 import {
     ListItemButton,
     Modal,
@@ -33,7 +33,7 @@ import { addDocument } from '../../firebase/service';
 function SettingModal({ visibleModal: { isSetting, setIsSetting }, info }) {
     const rooms = useSelector(roomsSelector);
     const { socket, currentUser } = React.useContext(AuthContext);
-    const { setNotice } = React.useContext(AppContext);
+    const { setNotice, openModalPreviewImg, setOpenModalPreviewImg } = React.useContext(AppContext);
     const [isSetBGR, SetIsSetBGR] = React.useState(false);
     const [newImg, setNewImg] = React.useState(null);
     const [newAvatar, setNewAvatar] = React.useState(null);
@@ -243,6 +243,7 @@ function SettingModal({ visibleModal: { isSetting, setIsSetting }, info }) {
                     <Box
                         className={styles['modal_wrapper']}
                         sx={{
+                            minWidth: '25vw',
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'center',
@@ -273,6 +274,9 @@ function SettingModal({ visibleModal: { isSetting, setIsSetting }, info }) {
                         <Typography variant="span" component="span">
                             {info.description}
                         </Typography>
+                        <ListItemButton onClick={() => setOpenModalPreviewImg({ open: true, id: null })}>
+                            <PhotoLibrary /> Các ảnh đã gửi
+                        </ListItemButton>
                         {info.members && (
                             <ListItemButton
                                 onClick={() => {
@@ -281,12 +285,6 @@ function SettingModal({ visibleModal: { isSetting, setIsSetting }, info }) {
                                 }}
                             >
                                 <PeopleOutlined /> Xem thành viên nhóm
-                            </ListItemButton>
-                        )}
-
-                        {info.users && (
-                            <ListItemButton>
-                                <PeopleOutlined /> Tạo nhóm với {info.name}
                             </ListItemButton>
                         )}
                         <ListItemButton onClick={() => SetIsSetBGR(true)}>

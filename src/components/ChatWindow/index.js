@@ -20,11 +20,10 @@ function ChatWindow() {
     const { currentUser, socket } = React.useContext(AuthContext);
     const currentRoom = useSelector(currentRoomSelector);
     const rooms = useSelector(roomsSelector);
-    const { setNotice, setAlert } = React.useContext(AppContext);
+    const { setNotice, setAlert, openModalPreviewImg, setOpenModalPreviewImg } = React.useContext(AppContext);
     const [msgRevice, setMsgRevice] = React.useState(null);
     const [listImg, setListImg] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
-    const [openModalPreviewImg, setOpenModalPreviewImg] = React.useState({ open: false, id: null });
     const listRef = React.useRef();
 
     const dispatch = useDispatch();
@@ -336,11 +335,11 @@ function ChatWindow() {
                 }}
                 className={styles['chatwindow_input']}
             >
-                <EmojiComponent handle={handleChooseEmoji} />
                 <IconButton component="label">
                     <input type="file" hidden onChange={handleChooseFile} multiple accept="image/*" />
                     <AddPhotoAlternate style={{ color: 'var(--text-color)' }} />
                 </IconButton>
+                <EmojiComponent handle={handleChooseEmoji} />
                 <TextareaAutosize
                     name="Message"
                     // onInput={(e) => setMsg(e.target.value)}

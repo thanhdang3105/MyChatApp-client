@@ -1,7 +1,8 @@
 import React from 'react';
 import styles from '../../scss/modalListImgSwiper.module.scss';
 import { Box, Fade, Modal, IconButton } from '@mui/material';
-import { NavigateBeforeOutlined, NavigateNextOutlined, HighlightOff } from '@mui/icons-material';
+import { NavigateBeforeOutlined, NavigateNextOutlined, HighlightOff, FileDownloadOutlined } from '@mui/icons-material';
+import axios from 'axios';
 
 function ListImgSwiper({
     room,
@@ -25,6 +26,8 @@ function ListImgSwiper({
                 });
             if (data.length) {
                 setList(data);
+            } else {
+                setList(null);
             }
         } else {
             setList(null);
@@ -37,6 +40,8 @@ function ListImgSwiper({
                 setIdActive(id);
             } else if (!id && list && list[0]) {
                 setIdActive(list[0].id);
+            } else if (!id && !list) {
+                setIdActive(null);
             }
         }
     }, [open, id]);
@@ -54,7 +59,7 @@ function ListImgSwiper({
             if (listView && listThumb && itemView && itemThumb) {
                 itemThumb.classList.add(styles['active']);
                 listView.scrollTo(itemView.offsetLeft - 30, 0);
-                listThumb.scrollTo(itemThumb.offsetLeft - itemThumb.offsetWidth * 4, 0);
+                listThumb.scrollTo(itemThumb.offsetLeft - itemThumb.offsetWidth * 3, 0);
             }
         }
     }, [idActive]);
@@ -96,6 +101,30 @@ function ListImgSwiper({
         }
     };
 
+    const handleDownload = (e) => {
+        const currentImg = document.querySelector(`li.${styles['modal_listImg-itemView']} img[alt="${idActive}"]`);
+
+        if (currentImg) {
+            // const newWin = window.open(currentImg.src, '', 'width: 500px; height: 500px');
+            // if (newWin && !newWin.closed) {
+            //     const test = newWin.trustedTypes.createPolicy('script',{
+            //         createScript: (script) => script
+            //     })
+            //     test.createScript('')
+            //     setTimeout(async () => {
+            //         await newWin.showSaveFilePicker({
+            //             types: [
+            //                 {
+            //                     description: 'Image',
+            //                     accept: { 'image/plain': ['.jpg', '.png', '.webp'] },
+            //                 },
+            //             ],
+            //         });
+            //     }, 10000);
+            // }
+        }
+    };
+
     return (
         <Modal
             open={open}
@@ -108,7 +137,14 @@ function ListImgSwiper({
             <Fade in={open}>
                 <Box className={styles['wrapper_modal-listImg']}>
                     <IconButton
-                        className={styles['btn_close']}
+                        style={{ transform: 'translateX(-100%)' }}
+                        className={styles['btn_modalHeader']}
+                        onClick={handleDownload}
+                    >
+                        <FileDownloadOutlined />
+                    </IconButton>
+                    <IconButton
+                        className={styles['btn_modalHeader']}
                         onClick={() => setOpenModalPreviewImg({ open: false, id: null })}
                     >
                         <HighlightOff />
@@ -151,7 +187,17 @@ function ListImgSwiper({
                             </ul>
                         </>
                     ) : (
-                        'Không có ảnh nào!'
+                        <div
+                            style={{
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--text-color)',
+                            }}
+                        >
+                            Không có ảnh nào!
+                        </div>
                     )}
                 </Box>
             </Fade>

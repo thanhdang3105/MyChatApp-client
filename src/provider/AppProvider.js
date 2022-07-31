@@ -17,6 +17,7 @@ export default function AppProvider({ children }) {
     const [notice, setNotice] = React.useState({ open: false, text: '' });
     const [alert, setAlert] = React.useState({ open: false, data: null });
     const [calling, setCalling] = React.useState({ isCalling: false, name: null, id: null });
+    const [openModalPreviewImg, setOpenModalPreviewImg] = React.useState({ open: false, id: null });
     const dispatch = useDispatch();
 
     React.useEffect(() => {
@@ -103,6 +104,8 @@ export default function AppProvider({ children }) {
                 chooseRoom,
                 calling,
                 setCalling,
+                openModalPreviewImg,
+                setOpenModalPreviewImg,
             }}
         >
             {children}
