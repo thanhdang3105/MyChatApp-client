@@ -29,10 +29,8 @@ function ChatWindow() {
     const dispatch = useDispatch();
 
     React.useEffect(() => {
-        if (listRef.current.scrollTop === listRef.current.scrollHeight) {
-            listRef.current.scrollTop = listRef.current.scrollHeight;
-        }
-    }, [currentRoom]);
+        listRef.current.scrollTop = listRef.current.scrollHeight;
+    }, [currentRoom.messages]);
 
     React.useEffect(() => {
         socket.current.on('recive_msg', (data) => {
