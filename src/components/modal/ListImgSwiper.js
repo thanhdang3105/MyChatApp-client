@@ -129,9 +129,8 @@ function ListImgSwiper({
 
     React.useEffect(() => {
         if (navigator.userAgent.match('iPhone')) {
-            const btn = document.querySelectorAll(styles['btn_modalHeader']);
-            console.log(btn);
-            // document.getElementsByClassName(styles['btn_modalHeader'])[0]?.style.display = 'none';
+            const btn = document.querySelectorAll('.' + styles['btn_modalHeader']);
+            btn[0]?.style.display = 'none';
         }
     }, []);
 
