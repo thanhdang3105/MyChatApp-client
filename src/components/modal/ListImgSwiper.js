@@ -127,6 +127,12 @@ function ListImgSwiper({
         }
     };
 
+    React.useEffect(() => {
+        if (navigator.userAgent.match('iPhone')) {
+            document.getElementsByClassName(styles['btn_modalHeader'])[0].style.display = 'none';
+        }
+    }, []);
+
     return (
         <Modal
             open={open}
