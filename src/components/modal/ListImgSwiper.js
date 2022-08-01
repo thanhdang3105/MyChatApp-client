@@ -130,6 +130,7 @@ function ListImgSwiper({
     React.useEffect(() => {
         if (navigator.userAgent.match('iPhone')) {
             const btn = document.getElementsByClassName(`${styles['btn_modalHeader']}`);
+            console.log(btn);
             if (btn && btn.length) {
                 btn[0].style.display = 'none';
             }
