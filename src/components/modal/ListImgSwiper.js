@@ -13,6 +13,7 @@ function ListImgSwiper({
 }) {
     const [list, setList] = React.useState(null);
     const [idActive, setIdActive] = React.useState(id);
+    const id_btn = React.useRef();
 
     React.useEffect(() => {
         const data = [];
@@ -128,11 +129,13 @@ function ListImgSwiper({
     };
 
     React.useEffect(() => {
-        const btn = document.getElementById('btn_download');
-        if (navigator.userAgent.match('iPhone')) {
-            btn.style.display = 'none';
-        } else {
-            btn.style.display = 'block';
+        const btn = document.getElementById(`${id_btn}`);
+        if (btn) {
+            if (navigator.userAgent.match('iPhone')) {
+                btn.style.display = 'none';
+            } else {
+                btn.style.display = 'block';
+            }
         }
     }, []);
 
@@ -148,7 +151,7 @@ function ListImgSwiper({
             <Fade in={open}>
                 <Box className={styles['wrapper_modal-listImg']}>
                     <IconButton
-                        id="btn_download"
+                        id={id_btn}
                         style={{ transform: 'translateX(-100%)' }}
                         className={styles['btn_modalHeader']}
                         onClick={handleDownload}
