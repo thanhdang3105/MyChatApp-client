@@ -1,9 +1,20 @@
 import React from 'react';
 import styles from '../../scss/homePage.module.scss';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { currentRoomSlice } from '../../redux/reducer/currentRoomSlice';
+import { roomsSlice } from '../../redux/reducer/roomsSlice';
+import { AuthContext } from '../../provider/AuthProvider';
 import { formatRelative } from 'date-fns/esm';
-import { Avatar, Box, ListItem, ListItemAvatar, ListItemText, Typography } from '@mui/material';
+import { Avatar, Box, ListItem, ListItemAvatar, ListItemText, Menu, MenuItem, Typography } from '@mui/material';
 
-function ItemMsg({ message, currentUser, isPreview }) {
+function ItemMsg({ message, isPreview }) {
+    const { socket, currentUser } = React.useContext(AuthContext);
+    const [contextMenu, setContextMenu] = React.useState(null);
+    const dispatch = useDispatch();
+    const regexp = React.useRef(
+        new RegExp(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi),
+    );
     const formatDate = React.useCallback((createdAt) => {
         let formatedDate = '';
         if (createdAt) {
@@ -14,6 +25,38 @@ function ItemMsg({ message, currentUser, isPreview }) {
         }
         return formatedDate;
     }, []);
+
+    const handleContextMenu = (event) => {
+        event.preventDefault();
+        setContextMenu((prev) =>
+            prev === null
+                ? {
+                      mouseX: event.clientX + 2,
+                      mouseY: event.clientY - 6,
+                  }
+                : null,
+        );
+    };
+
+    const handleClose = () => {
+        setContextMenu(null);
+    };
+
+    const handleItemContextMenu = (e) => {
+        if (e.currentTarget.innerText === 'Sao chép') {
+            navigator.clipboard.writeText(message.text);
+        } else if (e.currentTarget.innerText === 'Thu hồi') {
+            axios
+                .post(process.env.REACT_APP_API_URI + '/api/messages', { action: 'remove', data: message._id })
+                .then(() => {
+                    dispatch(currentRoomSlice.actions.removeMsg({ idRoom: message.foreignId, idMsg: message._id }));
+                    dispatch(roomsSlice.actions.removeMsg({ idRoom: message.foreignId, idMsg: message._id }));
+                    socket.current.emit('removeMsg', { to: message.foreignId, data: message._id });
+                })
+                .catch((err) => console.log(err));
+        }
+        handleClose();
+    };
 
     return (
         <ListItem
@@ -55,8 +98,43 @@ function ItemMsg({ message, currentUser, isPreview }) {
                                 })}
                             </span>
                         ) : (
-                            <Typography className={styles['msg_content-wrapper--text']} component="span" variant="body">
-                                {message.text}
+                            <Typography
+                                onContextMenu={handleContextMenu}
+                                className={styles['msg_content-wrapper--text']}
+                                component="span"
+                                variant="body"
+                            >
+                                <Menu
+                                    open={contextMenu !== null}
+                                    onClose={handleClose}
+                                    anchorReference="anchorPosition"
+                                    anchorPosition={
+                                        contextMenu !== null
+                                            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                                            : undefined
+                                    }
+                                >
+                                    <MenuItem onClick={handleItemContextMenu}>Sao chép</MenuItem>
+                                    <MenuItem onClick={handleItemContextMenu}>Thu hồi</MenuItem>
+                                </Menu>
+                                {message.removed ? (
+                                    'Đã thu hồi'
+                                ) : regexp.current.test(message.text) ? (
+                                    <a
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        href={
+                                            message.text.includes('http://') || message.text.includes('https://')
+                                                ? message.text
+                                                : 'https://' + message.text
+                                        }
+                                        style={{ color: 'var(--text-color)' }}
+                                    >
+                                        {message.text}
+                                    </a>
+                                ) : (
+                                    message.text
+                                )}
                             </Typography>
                         )}
                         <Typography variant="caption" component="label">

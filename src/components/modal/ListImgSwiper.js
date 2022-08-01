@@ -44,7 +44,7 @@ function ListImgSwiper({
                 setIdActive(null);
             }
         }
-    }, [open, id]);
+    }, [open, id, list]);
 
     React.useEffect(() => {
         if (idActive) {
@@ -103,25 +103,27 @@ function ListImgSwiper({
 
     const handleDownload = (e) => {
         const currentImg = document.querySelector(`li.${styles['modal_listImg-itemView']} img[alt="${idActive}"]`);
-
         if (currentImg) {
-            // const newWin = window.open(currentImg.src, '', 'width: 500px; height: 500px');
-            // if (newWin && !newWin.closed) {
-            //     const test = newWin.trustedTypes.createPolicy('script',{
-            //         createScript: (script) => script
-            //     })
-            //     test.createScript('')
-            //     setTimeout(async () => {
-            //         await newWin.showSaveFilePicker({
-            //             types: [
-            //                 {
-            //                     description: 'Image',
-            //                     accept: { 'image/plain': ['.jpg', '.png', '.webp'] },
-            //                 },
-            //             ],
-            //         });
-            //     }, 10000);
-            // }
+            const name = currentImg.src.split('?')[0].split('/').pop();
+            try {
+                axios({
+                    url: currentImg.src,
+                    method: 'get',
+                    responseType: 'arraybuffer',
+                })
+                    .then((res) => {
+                        const url = window.URL.createObjectURL(new Blob([res.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = name;
+                        link.click();
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            } catch (err) {
+                console.log(err);
+            }
         }
     };
 

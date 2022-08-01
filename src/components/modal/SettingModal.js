@@ -33,7 +33,7 @@ import { addDocument } from '../../firebase/service';
 function SettingModal({ visibleModal: { isSetting, setIsSetting }, info }) {
     const rooms = useSelector(roomsSelector);
     const { socket, currentUser } = React.useContext(AuthContext);
-    const { setNotice, openModalPreviewImg, setOpenModalPreviewImg } = React.useContext(AppContext);
+    const { setNotice, setOpenModalPreviewImg } = React.useContext(AppContext);
     const [isSetBGR, SetIsSetBGR] = React.useState(false);
     const [newImg, setNewImg] = React.useState(null);
     const [newAvatar, setNewAvatar] = React.useState(null);
@@ -263,7 +263,10 @@ function SettingModal({ visibleModal: { isSetting, setIsSetting }, info }) {
                             {info.members && (
                                 <input hidden accept="image/*" type="file" onChange={handleChangeAvatar} />
                             )}
-                            <Avatar sx={{ width: 100, height: 100, border: 1 }} src={newAvatar || info.photoURL}>
+                            <Avatar
+                                sx={{ width: 100, height: 100, border: '1px solid var(--border-color)' }}
+                                src={newAvatar || info.photoURL}
+                            >
                                 {info.photoURL || info.name?.charAt(0).toUpperCase()}
                             </Avatar>
                         </Button>

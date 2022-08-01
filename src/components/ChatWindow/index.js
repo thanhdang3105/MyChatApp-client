@@ -297,12 +297,7 @@ function ChatWindow() {
                 {!currentRoom.messages?.length
                     ? ''
                     : currentRoom.messages.map((message, index) => (
-                          <ItemMsg
-                              message={message}
-                              currentUser={currentUser}
-                              key={index}
-                              isPreview={setOpenModalPreviewImg}
-                          />
+                          <ItemMsg message={message} key={index} isPreview={setOpenModalPreviewImg} />
                       ))}
             </List>
             {listImg && (

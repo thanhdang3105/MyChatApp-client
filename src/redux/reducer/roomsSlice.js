@@ -37,6 +37,17 @@ export const roomsSlice = createSlice({
             }
             return state;
         },
+        removeMsg: (state, { payload }) => {
+            const { idRoom, idMsg } = payload;
+            const check = state.find((room) => room._id === idRoom);
+            if (check) {
+                const msg = check.messages.find((msg) => msg._id === idMsg);
+                if (msg) {
+                    msg.removed = true;
+                }
+            }
+            return state;
+        },
         checkNotify: (state, { payload }) => {
             const { id, notify, currentRoomId } = payload;
             state.map((room) => {

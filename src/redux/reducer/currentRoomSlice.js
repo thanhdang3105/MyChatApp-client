@@ -25,6 +25,16 @@ export const currentRoomSlice = createSlice({
             }
             return state;
         },
+        removeMsg: (state, { payload }) => {
+            const { idRoom, idMsg } = payload;
+            if (state._id === idRoom) {
+                const msg = state.messages.find((msg) => msg._id === idMsg);
+                if (msg) {
+                    msg.removed = true;
+                }
+            }
+            return state;
+        },
         changeInfo: (state, { payload }) => {
             const { id, data } = payload;
             const newMSG = state.messages.map((message) => {

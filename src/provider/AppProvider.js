@@ -59,6 +59,10 @@ export default function AppProvider({ children }) {
     }, [socket, dispatch, currentRoom]);
 
     React.useEffect(() => {
+        socket.current.on('msgRemoved', ({ idRoom, idMsg }) => {
+            dispatch(currentRoomSlice.actions.removeMsg({ idRoom, idMsg }));
+            dispatch(roomsSlice.actions.removeMsg({ idRoom, idMsg }));
+        });
         socket.current.on('userChangeInfo', (data) => {
             dispatch(usersSlice.actions.updateUser({ id: data._id, data }));
             dispatch(roomsSlice.actions.memberChangeInfo({ id: data._id, data }));
