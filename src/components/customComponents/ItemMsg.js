@@ -58,6 +58,22 @@ function ItemMsg({ message, isPreview }) {
         handleClose();
     };
 
+    const handleTouchStart = (e) => {
+        const touch = setTimeout(() => {
+            setContextMenu((prev) =>
+                prev === null
+                    ? {
+                          mouseX: e.clientX + 2,
+                          mouseY: e.clientY - 6,
+                      }
+                    : null,
+            );
+        }, 1500);
+        e.currentTarget.onTouchCancel = () => {
+            clearTimeout(touch);
+        };
+    };
+
     return (
         <ListItem
             className={`${styles['chatwindow_msg']} ${
@@ -100,6 +116,7 @@ function ItemMsg({ message, isPreview }) {
                         ) : (
                             <Typography
                                 onContextMenu={handleContextMenu}
+                                onTouchStart={handleTouchStart}
                                 className={styles['msg_content-wrapper--text']}
                                 component="span"
                                 variant="body"
