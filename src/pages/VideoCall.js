@@ -253,7 +253,7 @@ export default function VideoCall() {
             remoteStream?.getTracks().forEach((track) => track.stop());
             remoteVideo?.removeAttribute('srcObjec');
         }
-    }, [localStream, remoteStream, socket, currentRoom.userId]);
+    }, [remoteStream, socket, currentRoom.userId]);
 
     React.useEffect(() => {
         if (status === 'connected' && remoteStream) {
