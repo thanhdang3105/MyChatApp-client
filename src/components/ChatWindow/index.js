@@ -29,7 +29,9 @@ function ChatWindow() {
     const dispatch = useDispatch();
 
     React.useEffect(() => {
-        listRef.current.scrollTop = listRef.current.scrollHeight;
+        if (listRef.current.scrollTop === listRef.current.scrollHeight) {
+            listRef.current.scrollTop = listRef.current.scrollHeight;
+        }
     }, [currentRoom]);
 
     React.useEffect(() => {

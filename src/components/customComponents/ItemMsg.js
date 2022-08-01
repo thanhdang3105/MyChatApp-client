@@ -27,15 +27,17 @@ function ItemMsg({ message, isPreview }) {
     }, []);
 
     const handleContextMenu = (event) => {
-        event.preventDefault();
-        setContextMenu((prev) =>
-            prev === null
-                ? {
-                      mouseX: event.clientX + 2,
-                      mouseY: event.clientY - 6,
-                  }
-                : null,
-        );
+        if (message.userId === currentUser._id) {
+            event.preventDefault();
+            setContextMenu((prev) =>
+                prev === null
+                    ? {
+                          mouseX: event.clientX + 2,
+                          mouseY: event.clientY - 6,
+                      }
+                    : null,
+            );
+        }
     };
 
     const handleClose = () => {
@@ -60,14 +62,7 @@ function ItemMsg({ message, isPreview }) {
 
     const handleTouchStart = (e) => {
         const touch = setTimeout(() => {
-            setContextMenu((prev) =>
-                prev === null
-                    ? {
-                          mouseX: e.clientX + 2,
-                          mouseY: e.clientY - 6,
-                      }
-                    : null,
-            );
+            handleContextMenu(e);
         }, 1500);
         e.currentTarget.onTouchCancel = () => {
             clearTimeout(touch);
