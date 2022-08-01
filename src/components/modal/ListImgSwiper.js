@@ -128,17 +128,19 @@ function ListImgSwiper({
     };
 
     React.useEffect(() => {
-        const btn = document.getElementsByClassName(styles['btn_modalHeader']);
-        console.log(btn);
-        console.log(styles['btn_modalHeader']);
-        if (btn && btn.length) {
-            if (navigator.userAgent.match('iPhone')) {
-                console.log(navigator.userAgent);
-                btn.style.display = 'none';
-            } else {
-                btn.style.display = 'block';
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementsByClassName(styles['btn_modalHeader']);
+            console.log(btn);
+            console.log(styles['btn_modalHeader']);
+            if (btn && btn.length) {
+                if (navigator.userAgent.match('iPhone')) {
+                    console.log(navigator.userAgent);
+                    btn.style.display = 'none';
+                } else {
+                    btn.style.display = 'block';
+                }
             }
-        }
+        });
     }, []);
 
     return (
