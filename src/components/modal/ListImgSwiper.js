@@ -127,22 +127,6 @@ function ListImgSwiper({
         }
     };
 
-    React.useEffect(() => {
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementsByClassName(styles['btn_modalHeader']);
-            console.log(btn);
-            console.log(styles['btn_modalHeader']);
-            if (btn && btn.length) {
-                if (navigator.userAgent.match('iPhone')) {
-                    console.log(navigator.userAgent);
-                    btn.style.display = 'none';
-                } else {
-                    btn.style.display = 'block';
-                }
-            }
-        });
-    }, []);
-
     return (
         <Modal
             open={open}
@@ -155,7 +139,11 @@ function ListImgSwiper({
             <Fade in={open}>
                 <Box className={styles['wrapper_modal-listImg']}>
                     <IconButton
-                        style={{ transform: 'translateX(-100%)' }}
+                        style={
+                            navigator.userAgent.match('iPhone')
+                                ? { display: 'none' }
+                                : { transform: 'translateX(-100%)' }
+                        }
                         className={styles['btn_modalHeader']}
                         onClick={handleDownload}
                     >
